@@ -79,6 +79,7 @@ const ELEMENT_DICT: Record<string, (any?) => Element> = {
    pathById: (id: string): SVGPathElement => document.querySelector<SVGPathElement>(`g#map-path-group path#${id}`),
    answerInput: (): HTMLInputElement => document.querySelector<HTMLInputElement>("input#answer"),
    counter: (): HTMLElement => document.querySelector<HTMLElement>("p#counter"),
+   history: (): HTMLElement => document.querySelector<HTMLElement>("div#history"),
 };
 
 let completeCountries = 0;
@@ -94,7 +95,8 @@ const drawCountries = () => {
         countryNode.id = country.id;
         countryNode.setAttribute("d", country.svgPath);
         countryNode.style.fill = "#d1d8e0"; // default grey
-        countryNode.style.stroke = "#a5b1c2"; // dark grey
+        countryNode.style.stroke = "rgba(0,0,0,0.2)"; // dark grey
+        countryNode.style.strokeWidth = "0.5"; // dark grey
         groupNode.appendChild(countryNode);
     }
 
@@ -102,8 +104,9 @@ const drawCountries = () => {
 
 const fillAll = () => {
     for(const country of Object.values(countryHashMap)) {
-    
-      ELEMENT_DICT.pathById(country.id).style.fill = COLOR_INDEX[country.continent][Math.floor(Math.random() * 2)];
+      const color = COLOR_INDEX[country.continent][Math.floor(Math.random() * 2)];
+      ELEMENT_DICT.pathById(country.id).style.fill = color;
+   //   ELEMENT_DICT.pathById(country.id).style.stroke = color;
       completeCountries++;
     }
 }
@@ -125,19 +128,33 @@ const setInputEventListener = () => {
             input.value = "";
 
             completeCountries++;
+            const historyElement = ELEMENT_DICT.history();
+            if (completeCountries === 1) {
+               historyElement.innerHTML = "";
+            }
+            const countryEntryElement = document.createElement("p");
+            countryEntryElement.className = "country-entry";
+            countryEntryElement.style.background = color;
+        
+            countryEntryElement.innerHTML = `<strong>${completeCountries}</strong> ${country.title}`;
+
+            historyElement.prepend(countryEntryElement);
+            historyElement.scrollTop = 0;
+
+
             ELEMENT_DICT.counter().innerHTML = `${completeCountries}/196`;  
          }
     });
 }
 
 const setMouseOverEventListener = () => {
-
    for(const country of Object.values(countryHashMap)) {
-      document.querySelector(`g#map-path-group path#${country.id}`).addEventListener("mouseenter", () => {     
-         ELEMENT_DICT.pathById(country.id).style.opacity = 0.5;
+      const countryElement = ELEMENT_DICT.pathById(country.id);
+      countryElement.addEventListener("mouseenter", () => {     
+         countryElement.style.opacity = 0.5;
       });
-      document.querySelector(`g#map-path-group path#${country.id}`).addEventListener("mouseleave", () => {
-         ELEMENT_DICT.pathById(country.id).style.opacity = 1.0;
+      countryElement.addEventListener("mouseleave", () => {
+         countryElement.style.opacity = 1.0;
       });
    
   }
@@ -147,5 +164,5 @@ window.addEventListener("load", () => {
     drawCountries();
     setInputEventListener();
     setMouseOverEventListener();
-    //fillAll();
+   // fillAll();
 });
