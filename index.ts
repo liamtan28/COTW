@@ -1565,7 +1565,7 @@ const mapDataWithContinents: Country[] = mapData.map(country => {
 
 const countryHashMap: Record<string, Country> = mapDataWithContinents.reduce((prev, curr) => ({
       ...prev,
-      [curr.title]: curr,
+      [curr.title.toLowerCase()]: curr,
    }), {});
 console.log(countryHashMap);
 
@@ -1642,7 +1642,7 @@ const drawCountries = () => {
 
     const groupNode = ELEMENT_DICT.mapPathGroup();
     
-    for (const country of mapData) {
+    for (const country of Object.values(countryHashMap)) {
         let countryNode = createSVGPath();
 
         countryNode = setSVGAttribute(countryNode, "title", country.title);
@@ -1656,7 +1656,7 @@ const drawCountries = () => {
 }
 
 const fillAll = () => {
-    for(const country of mapDataWithContinents) {
+    for(const country of Object.values(countryHashMap)) {
     
       ELEMENT_DICT.pathById(country.id).style.fill = COLOR_INDEX[country.continent][Math.floor(Math.random() * 2)];
       completeCountries++;
@@ -1668,23 +1668,20 @@ const setInputEventListener = () => {
 
     input.addEventListener("keyup", () => {
         // !TODO optimise this, by instead making the countries a hashmap.
+         const country = countryHashMap[input.value.toLowerCase()];
+         if (country) {
+            const palette = COLOR_INDEX[country.continent];
+            // Select either the 0th or nth index of the palette at random.
+            const color = palette[Math.floor(Math.random() * palette.length)];
+         
+            ELEMENT_DICT.pathById(country.id).style.fill = color;
 
-        for (const country of mapDataWithContinents) {
-            if (country.title.toLowerCase() === input.value.toLowerCase()) {
-   
-               const palette = COLOR_INDEX[country.continent];
-               // Select either the 0th or nth index of the palette at random.
-               const color = palette[Math.floor(Math.random() * palette.length)];
-            
-               ELEMENT_DICT.pathById(country.id).style.fill = color;
+            // Reset input
+            input.value = "";
 
-               // Reset input
-               input.value = "";
-
-               completeCountries++;
-               document.querySelector("p#counter").innerHTML = `${completeCountries}/196`;
-            }
-        }
+            completeCountries++;
+            document.querySelector("p#counter").innerHTML = `${completeCountries}/196`;  
+         }
     });
 }
 
