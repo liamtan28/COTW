@@ -137,7 +137,22 @@ const addCountryToHistory = (country: Country): void => {
    historyElement.scrollTop = 0;
 
 }
+// delete all entries for this country.
+const deleteCountryAndDuplicates = (country: Country): void => {
+   // 1. save the accepted names
+   // 2. delete this element
+   // 3. for each accepted name, delete this too.
+   console.log(Object.values(countryHashMap).length);
+   delete countryHashMap[country.title.toLowerCase()];
+   if (country.acceptedNames) {
+      for (const name of country.acceptedNames) {
+         delete countryHashMap[name.toLowerCase()];
+      }
+   }
+
+};
 const updateCounter = (): any => ELEMENT_DICT.counter().innerHTML = `${completeCountries}/196`;  
+
 
 /** TODO ADD VIEWPORT SCROLL MANIP WITH MOUSE EVENTS */
 const setInputEventListener = () => {
@@ -151,6 +166,7 @@ const setInputEventListener = () => {
 
             colorCountry(country);
             addCountryToHistory(country);
+            deleteCountryAndDuplicates(country);
             updateCounter();    
          }
     });
