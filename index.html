@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 	<script src="./index.ts" type="module"></script>
 	<style>
-		@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+		@import url('https://fonts.googleapis.com/css2?family=Libre+Bodoni:ital@1&family=Roboto:wght@400;700&display=swap');
 		body {
 			margin: 0;
 			padding: 0;
@@ -84,6 +84,14 @@
 			font-size: 12px;
 	
 		}
+		text.ocean-marker {
+		
+			font-style: italic;
+			font-size: 8px;
+			font-family: 'Roboto', sans-serif;
+			fill: #3867d6;
+		
+		}
 	</style>
 	<body>
 		<header>
@@ -93,17 +101,18 @@
 		<div id="map-zoom-container">
 			<svg
 				xmlns:svg="http://www.w3.org/2000/svg"
-				viewBox="0 0 1000 700"
+				viewBox="0 0 1000 1000"
 			
 				width="100%" 
 				id="map"
 				height="100%"
 			>
-			<text x="20" y="35" class="small">My</text>
+			<text x="320" y="370" class="ocean-marker">North Atlantic Ocean</text>
+			<text x="670" y="520" class="ocean-marker">Indian Ocean</text>
 				<g id="map-path-group"></g>
 			</svg>
 			<div id="history">
-				<p class="country-entry">...</p>
+				<p class="country-entry"><strong>...</strong></p>
 			</div>
 		</div>
 	</body>

@@ -104,45 +104,54 @@ const drawCountries = () => {
 
 const fillAll = () => {
     for(const country of Object.values(countryHashMap)) {
-      const color = COLOR_INDEX[country.continent][Math.floor(Math.random() * 2)];
-      ELEMENT_DICT.pathById(country.id).style.fill = color;
-   //   ELEMENT_DICT.pathById(country.id).style.stroke = color;
+      colorCountry(country);
+      addCountryToHistory(country);
+      updateCounter();    
       completeCountries++;
     }
 }
 
+const colorCountry = (country: Country): void => {
+   const palette = COLOR_INDEX[country.continent];
+   // Select either the 0th or nth index of the palette at random.
+   const color = palette[Math.floor(Math.random() * palette.length)];
+
+   ELEMENT_DICT.pathById(country.id).style.fill = color;
+}
+
+const addCountryToHistory = (country: Country): void => {
+   const historyElement = ELEMENT_DICT.history();
+   const palette = COLOR_INDEX[country.continent];
+   const color = palette[Math.floor(Math.random() * palette.length)];
+
+   if (completeCountries === 1) {
+      historyElement.innerHTML = "";
+   }
+   const countryEntryElement = document.createElement("p");
+   countryEntryElement.className = "country-entry";
+   countryEntryElement.style.background = color;
+
+   countryEntryElement.innerHTML = `<strong>${completeCountries}</strong> ${country.title}`;
+
+   historyElement.prepend(countryEntryElement);
+   historyElement.scrollTop = 0;
+
+}
+const updateCounter = (): any => ELEMENT_DICT.counter().innerHTML = `${completeCountries}/196`;  
+
+/** TODO ADD VIEWPORT SCROLL MANIP WITH MOUSE EVENTS */
 const setInputEventListener = () => {
     const input = document.querySelector<HTMLInputElement>("input#answer");
 
     input.addEventListener("keyup", () => {
-
          const country = countryHashMap[input.value.toLowerCase()];
          if (country) {
-            const palette = COLOR_INDEX[country.continent];
-            // Select either the 0th or nth index of the palette at random.
-            const color = palette[Math.floor(Math.random() * palette.length)];
-         
-            ELEMENT_DICT.pathById(country.id).style.fill = color;
-
-            // Reset input
             input.value = "";
-
             completeCountries++;
-            const historyElement = ELEMENT_DICT.history();
-            if (completeCountries === 1) {
-               historyElement.innerHTML = "";
-            }
-            const countryEntryElement = document.createElement("p");
-            countryEntryElement.className = "country-entry";
-            countryEntryElement.style.background = color;
-        
-            countryEntryElement.innerHTML = `<strong>${completeCountries}</strong> ${country.title}`;
 
-            historyElement.prepend(countryEntryElement);
-            historyElement.scrollTop = 0;
-
-
-            ELEMENT_DICT.counter().innerHTML = `${completeCountries}/196`;  
+            colorCountry(country);
+            addCountryToHistory(country);
+            updateCounter();    
          }
     });
 }
@@ -164,5 +173,5 @@ window.addEventListener("load", () => {
     drawCountries();
     setInputEventListener();
     setMouseOverEventListener();
-   // fillAll();
+    //fillAll();
 });
