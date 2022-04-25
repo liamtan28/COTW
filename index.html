@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+	<script src="index.ts" type="text/javascript"></script>
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+		body {
+			margin: 0;
+			padding: 0;
+			background: rgba(37, 204, 247,0.6);
+			width: 100%;
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+			font-family: 'Roboto', sans-serif;
+			
+		}
+		header {
+			position: fixed;
+			width: 100%;
+			background: white;
+			height: 2rem;
+			padding: 10px;
+			display: flex;
+			align-items:center;
+			justify-content: center;
+		}
+		input {
+			border: none;
+			background: black;
+			border-radius: 10px;
+			font-weight: 700;
+			color: white;
+			width: 400px;
+			text-align: center;
+			padding: 10px;
+			text-transform: uppercase;
+		}
+		::placeholder {
+			font-weight: 700;
+			color: white;
+		}
+		#map-zoom-container {
+			flex: 1;
+			margin-top: 82px;
+		}
+		svg {
+			text-align: center;
+		}
+		p#counter {
+			font-weight: 700;
+			margin: 0 0 0 1rem;
+			border: 2px solid black;
+			border-radius: 10px;
+			padding: 6px;
+		}
+	</style>
+	<body>
+		<header>
+			<input placeholder="Enter a country" type="text" id="answer" />
+			<p id="counter">0/196</p>
+		</header>
+		<div id="map-zoom-container">
+			<svg
+				xmlns:svg="http://www.w3.org/2000/svg"
+				viewBox="0 0 1000 700"
+			
+				width="100%" 
+				id="map"
+				height="100%"
+			>
+			<text x="20" y="35" class="small">My</text>
+				<g id="map-path-group"></g>
+			</svg>
+		</div>
+	</body>
+</html>
