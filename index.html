@@ -93,9 +93,9 @@
 		
 		}
 		.control {
-			margin: 0 1rem 0 0;
+			margin: 0.2rem 1rem 0 0;
 			border: none;
-			padding: 0.5rem;
+			padding: 0.2rem;
 			background: #fff;
 			border-radius: 10px;
 			cursor: pointer;
@@ -167,6 +167,18 @@
 			color: #fff;
 			border-radius: 10px;
 		}
+
+		text.score-marker {
+		
+			font-size: 10px;
+			font-family: 'Roboto', sans-serif;
+			fill: rgba(0,0,0,0.7);
+			
+		}
+		text.score-marker tspan {
+			font-size: 5px;
+		
+		}
 	</style>
 	<body>
 
@@ -235,19 +247,57 @@
 					</svg>					
 				</span>
 			<input placeholder="Enter a country" type="text" id="answer" />
-			<p id="counter">0/196</p>
+			<p id="counter">0/197</p>
+			<span class="control" id="finish-game" style="margin-left: 1rem">
+				<svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" data-name="Layer 1" viewBox="0 0 24 24" width="24" height="24"><path d="M13,2.051V1a1,1,0,0,0-2,0V2.051A10.98,10.98,0,0,0,3.681,20.176,3.024,3.024,0,0,0,2,23a1,1,0,0,0,2,0,1.2,1.2,0,0,1,1.11-1.229.932.932,0,0,0,.2-.062,10.924,10.924,0,0,0,13.39,0,1.033,1.033,0,0,0,.182.064A1.2,1.2,0,0,1,20,23a1,1,0,0,0,2,0,3.024,3.024,0,0,0-1.681-2.824A10.98,10.98,0,0,0,13,2.051ZM3,13a9,9,0,1,1,9,9A9.011,9.011,0,0,1,3,13Z"/><path d="M19.215,0a1,1,0,0,0,0,2A2.59,2.59,0,0,1,22,4.5a1,1,0,0,0,2,0A4.6,4.6,0,0,0,19.215,0Z"/><path d="M2,4.5A2.59,2.59,0,0,1,4.785,2a1,1,0,0,0,0-2A4.6,4.6,0,0,0,0,4.5a1,1,0,0,0,2,0Z"/><path d="M13,11.586V7a1,1,0,0,0-2,0v5a1,1,0,0,0,.293.707l3,3a1,1,0,0,0,1.414-1.414Z"/></svg>
+			</span>
 		</header>
 		<div id="map-zoom-container">
 			<svg
 				xmlns:svg="http://www.w3.org/2000/svg"
 				viewBox="0 0 800 600"
-			
 				width="100%" 
 				id="map"
 				height="100%"
 			>
-			<text x="320" y="370" class="ocean-marker">North Atlantic Ocean</text>
-			<text x="670" y="520" class="ocean-marker">Indian Ocean</text>
+
+				<!--OCEAN MARKERS-->
+				<text x="320" y="370" class="ocean-marker">North Atlantic Ocean</text>
+				<text x="400" y="540" class="ocean-marker">South Atlantic Ocean</text>
+				<text x="890" y="405" class="ocean-marker">North Pacific Ocean</text>
+				<text x="30" y="540" class="ocean-marker">South Pacific Ocean</text>
+				<text x="680" y="520" class="ocean-marker">Indian Ocean</text>
+
+				<!--SCORE MARKERS-->
+			
+				<text x="450" y="480" class="score-marker" id="score-marker-4">
+					Africa <tspan>(0/54)</tspan>
+				</text>
+
+				<text x="640" y="420" class="score-marker" id="score-marker-3">
+					Asia <tspan>(0/48)</tspan>
+				</text>
+
+				<text x="195" y="525" class="score-marker" id="score-marker-1">
+					S. America <tspan>(0/12)</tspan>
+				</text>
+
+				<text x="40" y="310" class="score-marker" id="score-marker-0">
+					N. America <tspan>(0/23)</tspan>
+				</text>
+
+				<text x="410" y="315" class="score-marker" id="score-marker-2">
+					Europe <tspan>(0/45)</tspan>
+				</text>
+
+				<text x="800" y="580" fill="rgba(0,0,0,0.6)" class="score-marker" id="score-marker-5">
+					Oceania <tspan>(0/14)</tspan>
+				</text>
+
+
+
+
+				<!--COUNTRY PATHS-->
 				<g id="map-path-group"></g>
 			</svg>
 			<div id="history">
@@ -255,7 +305,7 @@
 			</div>
 
 			<div id="country-panel">
-				<strong>Belarus</strong>
+				<strong>...</strong>
 			</div>
 		</div>
 	</body>

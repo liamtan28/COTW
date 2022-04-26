@@ -12,7 +12,6 @@ enum Continent {
    NOT_APPLICABLE,
 }
 
-
 class Game {
 
    private static SVG_NAMESPACE = "http://www.w3.org/2000/svg";
@@ -32,6 +31,15 @@ class Game {
       [Continent.AFRICA]: [],
       [Continent.OCEANIA]: [],
       [Continent.NOT_APPLICABLE]: [],
+   }
+   private static targetNumCountries: Record<Continent, number> = {
+      [Continent.ASIA]: 48,
+      [Continent.NORTH_AMERICA]: 23,
+      [Continent.SOUTH_AMERICA]: 12,
+      [Continent.EUROPE]: 45,
+      [Continent.AFRICA]: 54,
+      [Continent.OCEANIA]: 14,
+      [Continent.NOT_APPLICABLE]: 0,
    }
    private completeCountries: number = 0;
 
@@ -114,13 +122,17 @@ class Game {
       delete countryHashMap[country.title.toLowerCase()];
       if (country.acceptedNames) {
          for (const name of country.acceptedNames) {
-            delete countryHashMap[name.toLowerCase()];
+            if (countryHashMap.hasOwnProperty(name.toLowerCase())) {
+               delete countryHashMap[name.toLowerCase()];
+            }
          }
       }
    }
 
-   private updateCounter(): void {
+   private updateCounters(country: Country): void {
       (ELEMENT_DICT.counter() as Element).innerHTML = `${this.completeCountries}/196`; 
+      // TODO autogenerate these markers to have the continent enum as part of it
+      (ELEMENT_DICT.countryCounter(country.continent) as SVGElement).innerHTML = `(${this.scoreboard[country.continent].length}/${Game.targetNumCountries[country.continent]})`;
    } 
 
 
@@ -139,8 +151,8 @@ class Game {
       this.addCountryToHistory(country);
       // Removes country from dataset (so it can't be found again), as well as any duplicates
       this.deleteCountryAndDuplicates(country);
-      // Updates DOM counter.
-      this.updateCounter();   
+      // Updates DOM counters.
+      this.updateCounters(country);   
    }
 
    public drawCountries(): void {
@@ -161,6 +173,10 @@ class Game {
       }
           
    }
+
+   public finish(): void {
+      console.log(countryHashMap);
+   };
 
    
    /********************
@@ -239,6 +255,11 @@ const setScoreboardEventListener = (game: Game) => {
       scoreboard.style.display = "none";
    });
 }
+const setFinishEventListener = (game: Game) => {
+   const finishButton = ELEMENT_DICT.finish() as HTMLElement;
+
+   finishButton.addEventListener("click", game.finish);
+}
 
 window.addEventListener("load", () => {
     const game: Game = new Game(800, 600, 0, 0);
@@ -250,5 +271,15 @@ window.addEventListener("load", () => {
    setViewBoxEventListeners();
    setZoomEventListeners();
    setScoreboardEventListener(game);
+   setFinishEventListener(game);
 
+   // for (const country of Object.values(countryHashMap)) {
+   //    game.countryFound(country);
+   // }
 });
+
+/****
+ * NUMBER MARKERS NEXT TO EACH REGION
+ * 
+ * 54 for Africa (dont forget sao tome)
+ */
