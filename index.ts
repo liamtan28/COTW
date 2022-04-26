@@ -33,7 +33,7 @@ class Game {
       [Continent.NOT_APPLICABLE]: [],
    }
    private static targetNumCountries: Record<Continent, number> = {
-      [Continent.ASIA]: 48,
+      [Continent.ASIA]: 49,
       [Continent.NORTH_AMERICA]: 23,
       [Continent.SOUTH_AMERICA]: 12,
       [Continent.EUROPE]: 45,
@@ -130,7 +130,7 @@ class Game {
    }
 
    private updateCounters(country: Country): void {
-      (ELEMENT_DICT.counter() as Element).innerHTML = `${this.completeCountries}/196`; 
+      (ELEMENT_DICT.counter() as Element).innerHTML = `${this.completeCountries}/197`; 
       // TODO autogenerate these markers to have the continent enum as part of it
       (ELEMENT_DICT.countryCounter(country.continent) as SVGElement).innerHTML = `(${this.scoreboard[country.continent].length}/${Game.targetNumCountries[country.continent]})`;
    } 
