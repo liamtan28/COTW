@@ -11,7 +11,7 @@
 			display: flex;
 			flex-direction: column;
 			font-family: 'Roboto', sans-serif;
-			
+			overflow: hidden;
 		}
 		header {
 			position: fixed;
@@ -22,7 +22,7 @@
 			display: flex;
 			align-items:center;
 			justify-content: center;
-			opacity: 0.7;
+			
 		}
 		input {
 			border: none;
@@ -41,7 +41,6 @@
 		}
 		#map-zoom-container {
 			flex: 1;
-			margin-top: 82px;
 			overflow: hidden;
 		}
 		svg {
@@ -93,9 +92,62 @@
 			fill: #3867d6;
 		
 		}
+		span.control {
+			margin: 0 1rem 0 0;
+			border: none;
+			padding: 0.5rem;
+			background: #fff;
+			border-radius: 10px;
+			cursor: pointer;
+		}
+		span.control:hover {
+			background: lightgrey;
+		}
+
+		span.control#help {
+
+		}
+
+		span.control#help.active {
+			
+		}
+
+		div#country-panel {
+			position: fixed;
+			bottom: 1rem;
+			right: 1rem;
+			background: #fff;
+			padding: 2rem;
+			border-radius: 10px;
+
+		}
 	</style>
 	<body>
 		<header>
+			<span class="control" id="help">
+				<?xml version="1.0" encoding="UTF-8"?>
+				<svg xmlns="http://www.w3.org/2000/svg" id="Outline" viewBox="0 0 24 24" width="24" height="24"><path d="M12,0A12,12,0,1,0,24,12,12.013,12.013,0,0,0,12,0Zm0,22A10,10,0,1,1,22,12,10.011,10.011,0,0,1,12,22Z"/><path d="M12.717,5.063A4,4,0,0,0,8,9a1,1,0,0,0,2,0,2,2,0,0,1,2.371-1.967,2.024,2.024,0,0,1,1.6,1.595,2,2,0,0,1-1,2.125A3.954,3.954,0,0,0,11,14.257V15a1,1,0,0,0,2,0v-.743a1.982,1.982,0,0,1,.93-1.752,4,4,0,0,0-1.213-7.442Z"/><rect x="11" y="17" width="2" height="2" rx="1"/></svg>
+			</span>
+			<span class="control" id="zoom-out">
+
+				<?xml version="1.0" encoding="UTF-8"?>
+				<!-- Generator: Adobe Illustrator 25.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24" height="24">
+				<g id="_01_align_center">
+					<path d="M511.89,481.79l-133.3-133.3c74.537-91.16,61.06-225.485-30.1-300.021s-225.485-61.06-300.021,30.1   s-61.06,225.485,30.1,300.021c78.521,64.202,191.401,64.202,269.921,0l133.3,133.3L511.89,481.79z M213.87,384.167   c-94.053,0-170.297-76.245-170.297-170.297S119.817,43.573,213.87,43.573s170.297,76.245,170.297,170.297   C384.062,307.879,307.879,384.062,213.87,384.167z"/>
+					<rect x="128.721" y="192.583" width="170.297" height="42.574"/>
+				</g>
+				</svg>
+
+			</span>
+			<span class="control" id="zoom-in">
+				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24" height="24">
+					<g id="_01_align_center">
+						<path d="M512,481.894L378.671,348.565c74.553-91.18,61.074-225.533-30.106-300.086S123.032-12.595,48.479,78.586   s-61.074,225.533,30.106,300.086c78.538,64.216,191.442,64.216,269.979,0L481.894,512L512,481.894z M213.916,384.25   c-94.073,0-170.334-76.261-170.334-170.334S119.843,43.582,213.916,43.582S384.25,119.843,384.25,213.916   C384.144,307.945,307.945,384.144,213.916,384.25z"/>
+						<polygon points="235.208,128.749 192.624,128.749 192.624,192.624 128.749,192.624 128.749,235.208 192.624,235.208    192.624,299.083 235.208,299.083 235.208,235.208 299.083,235.208 299.083,192.624 235.208,192.624  "/>
+					</g>
+					</svg>					
+				</span>
 			<input placeholder="Enter a country" type="text" id="answer" />
 			<p id="counter">0/196</p>
 		</header>
@@ -114,6 +166,10 @@
 			</svg>
 			<div id="history">
 				<p class="country-entry"><strong>...</strong></p>
+			</div>
+
+			<div id="country-panel">
+				<strong>Belarus</strong>
 			</div>
 		</div>
 	</body>

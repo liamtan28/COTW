@@ -75,16 +75,20 @@ const setSVGAttribute = (node: SVGPathElement, attr: string, value: string): SVG
  */
 
 const ELEMENT_DICT: Record<string, (any?) => Element | NodeListOf<Element>> = {
-   svg: (): SVGElement => document.querySelector("svg"),
+   svg: (): SVGElement => document.querySelector("svg#map"),
    mapPathGroup: (): Element => document.querySelector<Element>("g#map-path-group"),
    // TODO I hate this dedup solution. Its really inefficient. This is a hashmap collision issue. 
    pathsById: (id: string): NodeListOf<SVGPathElement> => document.querySelectorAll<SVGPathElement>(`g#map-path-group path#${id}`),
    answerInput: (): HTMLInputElement => document.querySelector<HTMLInputElement>("input#answer"),
    counter: (): HTMLElement => document.querySelector<HTMLElement>("p#counter"),
    history: (): HTMLElement => document.querySelector<HTMLElement>("div#history"),
+   countryPanel: (): HTMLElement => document.querySelector<HTMLElement>("div#country-panel"),
+   zoomIn: (): HTMLElement => document.querySelector<HTMLElement>("span.control#zoom-in"),
+   zoomOut: (): HTMLElement => document.querySelector<HTMLElement>("span.control#zoom-out"),
 };
 
 let completeCountries = 0;
+let selectedCountry = "";
 
 const drawCountries = () => {
 
@@ -99,6 +103,7 @@ const drawCountries = () => {
         countryNode.style.fill = "#d1d8e0"; // default grey
         countryNode.style.stroke = "rgba(0,0,0,0.2)"; // dark grey
         countryNode.style.strokeWidth = "0.5"; // dark grey
+        countryNode.setAttribute("data-found", "false");
         groupNode.appendChild(countryNode);
     }
 
@@ -121,6 +126,12 @@ const colorCountry = (country: Country): void => {
    const color = palette[Math.floor(Math.random() * palette.length)];
   
    (<NodeListOf<SVGPathElement>>ELEMENT_DICT.pathsById(country.id)).forEach(e => e.style.fill = color);
+ 
+}
+
+const markCountryAsComplete = (country: Country): void => {
+
+   (<NodeListOf<SVGPathElement>>ELEMENT_DICT.pathsById(country.id)).forEach(e => e.setAttribute("data-found", "true"));
  
 }
 
@@ -159,7 +170,6 @@ const deleteCountryAndDuplicates = (country: Country): void => {
 const updateCounter = (): any => (ELEMENT_DICT.counter() as Element).innerHTML = `${completeCountries}/196`;  
 
 
-/** TODO ADD VIEWPORT SCROLL MANIP WITH MOUSE EVENTS */
 const setInputEventListener = () => {
     const input = document.querySelector<HTMLInputElement>("input#answer");
 
@@ -168,7 +178,7 @@ const setInputEventListener = () => {
          if (country) {
             input.value = "";
             completeCountries++;
-
+            markCountryAsComplete(country);
             colorCountry(country);
             addCountryToHistory(country);
             deleteCountryAndDuplicates(country);
@@ -178,38 +188,52 @@ const setInputEventListener = () => {
 }
 
 const setMouseOverEventListener = () => {
+   const countryPanel = ELEMENT_DICT.countryPanel() as HTMLElement;
    for(const country of Object.values(countryHashMap)) {
       const countryElements = ELEMENT_DICT.pathsById(country.id) as NodeListOf<SVGPathElement>;
+      
       countryElements.forEach(element => {
          element.addEventListener("mouseenter", () => {     
+            document.querySelector("body").style.cursor = "pointer";
             element.style.opacity = 0.5;
+
+            // TODO CHANGE THIS TO CONSTANT VALUE
+            if (element.getAttribute("data-found") === "true") {
+               selectedCountry = country.title;
+               countryPanel.innerHTML = `<strong>${selectedCountry}</strong>`;
+            }
+
          });
          element.addEventListener("mouseleave", () => {
+            document.querySelector("body").style.cursor = "auto";
             element.style.opacity = 1.0;
+            selectedCountry = "...";
+            countryPanel.innerHTML = `<strong>${selectedCountry}</strong>`;
+            
          });
       });
   }
 }
 
 
+// TODO move all of this so we dont have global closure
+const viewBox = {
+   x: 0,
+   y: 0,
+   width: 800,
+   height: 600,
+}
+const svg = ELEMENT_DICT.svg() as SVGElement;
+   
 /****
  * PAN DRAG ZOOM EFFECTS
  */
 const setViewBoxEventListeners = () => {
-   const svg = ELEMENT_DICT.svg() as SVGElement;
-   
    // Track position of mouse when clicked down
    const pointerOrigin = {
       x: 0,
       y: 0
    };
-
-   const viewBox = {
-      x: 0,
-      y: 0,
-      width: 800,
-      height: 600,
-   }
 
    const translatedViewBox = {
       x: 0,
@@ -219,7 +243,6 @@ const setViewBoxEventListeners = () => {
    let isPointerDown = false;
 
    const onPointerDown = (e: PointerEvent) => {
-      e.preventDefault();
       isPointerDown = true;
 
       pointerOrigin.x = e.clientX;
@@ -230,7 +253,7 @@ const setViewBoxEventListeners = () => {
 
    const onPointerUp = (e: PointerEvent) => {
       document.querySelector("body").style.cursor = "auto";
-      e.preventDefault();
+ 
       isPointerDown = false;
 
       // save last position
@@ -239,7 +262,7 @@ const setViewBoxEventListeners = () => {
    };
 
    const onPointerLeave = (e) => {
-      e.preventDefault();
+ 
       document.querySelector("body").style.cursor = "auto";
    };
 
@@ -267,7 +290,7 @@ const setViewBoxEventListeners = () => {
       const viewBoxString = `${translatedViewBox.x} ${translatedViewBox.y} ${viewBox.width} ${viewBox.height}`;
       // We apply the new viewBox values onto the SVG
       svg.setAttribute('viewBox', viewBoxString);
-      
+
 
    };
 
@@ -301,10 +324,47 @@ const setViewBoxEventListeners = () => {
    });
 }
 
+const setZoomEventListeners = (): void => {
+   const zoomIn = ELEMENT_DICT.zoomIn() as HTMLElement;
+   const zoomOut = ELEMENT_DICT.zoomOut() as HTMLElement;
+
+   const ZOOM_VALUE = 80;
+
+   zoomIn.addEventListener("mousedown", () => {
+      console.log("in");
+      viewBox.width -= ZOOM_VALUE;
+      viewBox.height -= ZOOM_VALUE;
+
+      // translate origin by 50 of zoom value
+      viewBox.x += ZOOM_VALUE / 2;
+      viewBox.y += ZOOM_VALUE / 2;
+
+      const viewBoxString = `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`;
+      // We apply the new viewBox values onto the SVG
+      svg.setAttribute('viewBox', viewBoxString);
+      
+   });
+
+   zoomOut.addEventListener("mousedown", () => {
+      console.log("out");
+      viewBox.width += ZOOM_VALUE;
+      viewBox.height += ZOOM_VALUE;
+
+      // translate origin by 50 of zoom value
+      viewBox.x -= ZOOM_VALUE / 2;
+      viewBox.y -= ZOOM_VALUE / 2;
+      
+      const viewBoxString = `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`;
+      // We apply the new viewBox values onto the SVG
+      svg.setAttribute('viewBox', viewBoxString);
+   });
+}
+
 window.addEventListener("load", () => {
     drawCountries();
     setInputEventListener();
-   // setMouseOverEventListener();
+    setMouseOverEventListener();
     setViewBoxEventListeners();
+    setZoomEventListeners();
     //fillAll();
 });
