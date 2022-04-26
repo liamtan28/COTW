@@ -1,0 +1,18 @@
+export const ELEMENT_DICT: Record<string, (any?) => Element | NodeListOf<Element>> = {
+    svg: (): SVGElement => document.querySelector("svg#map"),
+    mapPathGroup: (): Element => document.querySelector<Element>("g#map-path-group"),
+    // TODO I hate this dedup solution. Its really inefficient. This is a hashmap collision issue. 
+    pathsById: (id: string): NodeListOf<SVGPathElement> => document.querySelectorAll<SVGPathElement>(`g#map-path-group path#${id}`),
+    answerInput: (): HTMLInputElement => document.querySelector<HTMLInputElement>("input#answer"),
+    counter: (): HTMLElement => document.querySelector<HTMLElement>("p#counter"),
+    history: (): HTMLElement => document.querySelector<HTMLElement>("div#history"),
+    countryPanel: (): HTMLElement => document.querySelector<HTMLElement>("div#country-panel"),
+    zoomIn: (): HTMLElement => document.querySelector<HTMLElement>("span.control#zoom-in"),
+    zoomOut: (): HTMLElement => document.querySelector<HTMLElement>("span.control#zoom-out"),
+ 
+    help: (): HTMLElement => document.querySelector<HTMLElement>("span.control#help"),
+    scoreboard: (): HTMLElement => document.querySelector<HTMLElement>("div#scoreboard"),
+    scoreboardContainer: (): HTMLElement => document.querySelector<HTMLElement>("div#scoreboard-container"),
+    closeScoreboard: (): HTMLElement => document.querySelector<HTMLElement>("svg.control#close-scoreboard"),
+    scoreboardSectionByContinent: (continent: string): HTMLElement => document.querySelector<HTMLElement>(`section.scoreboard__continent-container#${continent}`),
+ };

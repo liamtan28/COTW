@@ -1,7 +1,6 @@
 import { default as countryHashMap } from "./map-data.json";
-/********************
- * MAP DATA
- */
+import { ELEMENT_DICT } from "./element-dict";
+import { setViewBoxEventListeners, setZoomEventListeners } from "./map-controls";
 
 enum Continent {
    NORTH_AMERICA,
@@ -12,359 +11,244 @@ enum Continent {
    OCEANIA,
    NOT_APPLICABLE,
 }
- 
-/********************
- * COLOR DATA
- */
-const colors: string[] = [
-    "#fc5c65", //red
-    "#eb3b5a",
 
-    "#fd9644", //orange
-    "#fa8231",
 
-    "#fed330", //yellow
-    "#f7b731",
+class Game {
 
-    "#26de81", //green
-    "#20bf6b",
+   private static SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
-    "#2bcbba", //bluegreen
-    "#0fb9b1",
-
-    "#45aaf2", //lightblue
-    "#2d98da",
-
-    "#4b7bec", //darkblue
-    "#3867d6",
-
-    "#a55eea", //purple
-    "#8854d0", 
-
-    "#d1d8e0", //silver
-    "#a5b1c2",
-
-    "#778ca3", //grey
-    "#4b6584",
-];
-
-const COLOR_INDEX: Record<Continent, string[]> = {
-   [Continent.ASIA]: ["#fc5c65", "#eb3b5a"],
-   [Continent.NORTH_AMERICA]: ["#fd9644", "#fa8231"],
-   [Continent.SOUTH_AMERICA]: [ "#fed330", "#f7b731"],
-   [Continent.EUROPE]: ["#26de81", "#20bf6b"],
-   [Continent.AFRICA]: ["#4b7bec", "#3867d6"],
-   [Continent.OCEANIA]: ["#a55eea", "#8854d0"],
-   [Continent.NOT_APPLICABLE]: ["#778ca3", "#4b6584"],
-};
-
-/********************
- * SVG UTILS
- */
-
-const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
-
-const createSVGPath = (): SVGPathElement => document.createElementNS(SVG_NAMESPACE, "path");
-const setSVGAttribute = (node: SVGPathElement, attr: string, value: string): SVGPathElement => {
-   node.setAttributeNS(SVG_NAMESPACE, attr, value);
-   return node;
-};
-
-/********************
- * DRAW AND RENDER
- */
-
-const ELEMENT_DICT: Record<string, (any?) => Element | NodeListOf<Element>> = {
-   svg: (): SVGElement => document.querySelector("svg#map"),
-   mapPathGroup: (): Element => document.querySelector<Element>("g#map-path-group"),
-   // TODO I hate this dedup solution. Its really inefficient. This is a hashmap collision issue. 
-   pathsById: (id: string): NodeListOf<SVGPathElement> => document.querySelectorAll<SVGPathElement>(`g#map-path-group path#${id}`),
-   answerInput: (): HTMLInputElement => document.querySelector<HTMLInputElement>("input#answer"),
-   counter: (): HTMLElement => document.querySelector<HTMLElement>("p#counter"),
-   history: (): HTMLElement => document.querySelector<HTMLElement>("div#history"),
-   countryPanel: (): HTMLElement => document.querySelector<HTMLElement>("div#country-panel"),
-   zoomIn: (): HTMLElement => document.querySelector<HTMLElement>("span.control#zoom-in"),
-   zoomOut: (): HTMLElement => document.querySelector<HTMLElement>("span.control#zoom-out"),
-};
-
-let completeCountries = 0;
-let selectedCountry = "";
-
-const drawCountries = () => {
-
-    const groupNode = ELEMENT_DICT.mapPathGroup() as Element;
-    
-    for (const country of Object.values(countryHashMap)) {
-        let countryNode = createSVGPath();
-
-        countryNode = setSVGAttribute(countryNode, "title", country.title);
-        countryNode.id = country.id;
-        countryNode.setAttribute("d", country.svgPath);
-        countryNode.style.fill = "#d1d8e0"; // default grey
-        countryNode.style.stroke = "rgba(0,0,0,0.2)"; // dark grey
-        countryNode.style.strokeWidth = "0.5"; // dark grey
-        countryNode.setAttribute("data-found", "false");
-        groupNode.appendChild(countryNode);
-    }
-
-}
-
-const fillAll = () => {
-    for(const country of Object.values(countryHashMap)) {
-      colorCountry(country);
-      addCountryToHistory(country);
-      updateCounter();    
-      completeCountries++;
-    }
-}
-
-const colorCountry = (country: Country): void => {
-
-   const palette = COLOR_INDEX[country.continent];
-
-   // Select either the 0th or nth index of the palette at random.
-   const color = palette[Math.floor(Math.random() * palette.length)];
-  
-   (<NodeListOf<SVGPathElement>>ELEMENT_DICT.pathsById(country.id)).forEach(e => e.style.fill = color);
- 
-}
-
-const markCountryAsComplete = (country: Country): void => {
-
-   (<NodeListOf<SVGPathElement>>ELEMENT_DICT.pathsById(country.id)).forEach(e => e.setAttribute("data-found", "true"));
- 
-}
-
-const addCountryToHistory = (country: Country): void => {
-   const historyElement = ELEMENT_DICT.history() as Element;
-   const palette = COLOR_INDEX[country.continent];
-   const color = palette[Math.floor(Math.random() * palette.length)];
-
-   if (completeCountries === 1) {
-      historyElement.innerHTML = "";
+   private viewPort: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
    }
-   const countryEntryElement = document.createElement("p");
-   countryEntryElement.className = "country-entry";
-   countryEntryElement.style.background = color;
 
-   countryEntryElement.innerHTML = `<strong>${completeCountries}</strong> ${country.title}`;
+   private scoreboard: Record<Continent, string[]> = {
+      [Continent.ASIA]: [],
+      [Continent.NORTH_AMERICA]: [],
+      [Continent.SOUTH_AMERICA]: [],
+      [Continent.EUROPE]: [],
+      [Continent.AFRICA]: [],
+      [Continent.OCEANIA]: [],
+      [Continent.NOT_APPLICABLE]: [],
+   }
+   private completeCountries: number = 0;
 
-   historyElement.prepend(countryEntryElement);
-   historyElement.scrollTop = 0;
+   private static COLOR_INDEX: Record<Continent, string[]> = {
+      [Continent.ASIA]: ["#fc5c65", "#eb3b5a"],
+      [Continent.NORTH_AMERICA]: ["#fd9644", "#fa8231"],
+      [Continent.SOUTH_AMERICA]: [ "#fed330", "#f7b731"],
+      [Continent.EUROPE]: ["#26de81", "#20bf6b"],
+      [Continent.AFRICA]: ["#4b7bec", "#3867d6"],
+      [Continent.OCEANIA]: ["#a55eea", "#8854d0"],
+      [Continent.NOT_APPLICABLE]: ["#778ca3", "#4b6584"],
+   };
 
-}
-// delete all entries for this country.
-const deleteCountryAndDuplicates = (country: Country): void => {
-   // 1. save the accepted names
-   // 2. delete this element
-   // 3. for each accepted name, delete this too.
-   
-   delete countryHashMap[country.title.toLowerCase()];
-   if (country.acceptedNames) {
-      for (const name of country.acceptedNames) {
-         delete countryHashMap[name.toLowerCase()];
+   public constructor(width: number, height: number, originX: number, originY: number) {
+      this.viewPort = {
+         width,
+         height,
+         x: originX,
+         y: originY,
+      };
+   }
+
+   /********************
+    * GAME UPDATES
+    */
+
+   public updateScoreboard(): void {
+      // TODO dynamically add sections to html with id of enum. That 
+      // way only one loop required.
+
+      const asiaSection = ELEMENT_DICT.scoreboardSectionByContinent("asia") as HTMLElement;
+      const northAmericaSection = ELEMENT_DICT.scoreboardSectionByContinent("northamerica") as HTMLElement;
+      const southAmericaSection = ELEMENT_DICT.scoreboardSectionByContinent("southamerica") as HTMLElement;
+      const europeSection = ELEMENT_DICT.scoreboardSectionByContinent("europe") as HTMLElement;
+      const africaSection = ELEMENT_DICT.scoreboardSectionByContinent("africa") as HTMLElement;
+      const oceaniaSection = ELEMENT_DICT.scoreboardSectionByContinent("oceania") as HTMLElement;
+      const miscSection = ELEMENT_DICT.scoreboardSectionByContinent("misc") as HTMLElement;
+
+      asiaSection.innerHTML = "";
+      for (const country of this.scoreboard[Continent.ASIA]) {
+         const entry = document.createElement("p");
+         entry.innerHTML = country;
+         entry.className = "scoreboard__continent-entry";
+         asiaSection.appendChild(entry);  
       }
    }
 
-};
-const updateCounter = (): any => (ELEMENT_DICT.counter() as Element).innerHTML = `${completeCountries}/196`;  
+   private colorCountry(country: Country): void {
+      const palette = Game.COLOR_INDEX[country.continent];
+      // Select either the 0th or nth index of the palette at random.
+      const color = palette[Math.floor(Math.random() * palette.length)];
+      (<NodeListOf<SVGPathElement>>ELEMENT_DICT.pathsById(country.id)).forEach(e => e.style.fill = color);
+   }
+
+   private markCountryAsComplete(country: Country): void {
+      (<NodeListOf<SVGPathElement>>ELEMENT_DICT.pathsById(country.id)).forEach(e => e.setAttribute("data-found", "true"));
+      this.scoreboard[country.continent].push(country.title);
+   }
+
+   private addCountryToHistory(country: Country): void {
+      const historyElement = ELEMENT_DICT.history() as Element;
+      const palette = Game.COLOR_INDEX[country.continent];
+      const color = palette[Math.floor(Math.random() * palette.length)];
+   
+      if (this.completeCountries === 1) {
+         historyElement.innerHTML = "";
+      }
+      const countryEntryElement = document.createElement("p");
+      countryEntryElement.className = "country-entry";
+      countryEntryElement.style.background = color;
+   
+      countryEntryElement.innerHTML = `<strong>${this.completeCountries}</strong> ${country.title}`;
+   
+      historyElement.prepend(countryEntryElement);
+      historyElement.scrollTop = 0;
+   
+   }
+
+   private deleteCountryAndDuplicates(country: Country): void {
+      delete countryHashMap[country.title.toLowerCase()];
+      if (country.acceptedNames) {
+         for (const name of country.acceptedNames) {
+            delete countryHashMap[name.toLowerCase()];
+         }
+      }
+   }
+
+   private updateCounter(): void {
+      (ELEMENT_DICT.counter() as Element).innerHTML = `${this.completeCountries}/196`; 
+   } 
 
 
-const setInputEventListener = () => {
+   /********************
+    * Public interfaces
+    */
+
+   public countryFound(country: Country): void {
+  
+      this.completeCountries++;
+      // Adds found: true prop to DOM element, and pushes to scoreboard
+      this.markCountryAsComplete(country);
+      // Finds SVG path, and changes fill color
+      this.colorCountry(country);
+      // Adds DOM element to history scroller at bottom
+      this.addCountryToHistory(country);
+      // Removes country from dataset (so it can't be found again), as well as any duplicates
+      this.deleteCountryAndDuplicates(country);
+      // Updates DOM counter.
+      this.updateCounter();   
+   }
+
+   public drawCountries(): void {
+      
+      const groupNode = ELEMENT_DICT.mapPathGroup() as Element;
+      
+      for (const country of Object.values(countryHashMap)) {
+            let countryNode = Game.createSVGPath();
+   
+            countryNode = Game.setSVGAttribute(countryNode, "title", country.title);
+            countryNode.id = country.id;
+            countryNode.setAttribute("d", country.svgPath);
+            countryNode.style.fill = "#d1d8e0"; // default grey
+            countryNode.style.stroke = "rgba(0,0,0,0.2)"; // dark grey
+            countryNode.style.strokeWidth = "0.5"; // dark grey
+            countryNode.setAttribute("data-found", "false");
+            groupNode.appendChild(countryNode);
+      }
+          
+   }
+
+   
+   /********************
+    * SVG UTILS
+    */
+
+   private static createSVGPath(): SVGPathElement {
+      return document.createElementNS(Game.SVG_NAMESPACE, "path") as SVGPathElement;
+   }
+   private static setSVGAttribute(node: SVGPathElement, attr: string, value: string): SVGPathElement {
+       node.setAttributeNS(Game.SVG_NAMESPACE, attr, value);
+       return node;
+   };   
+
+}
+
+
+/****************
+ * Event listeners
+ */
+
+const setInputEventListener = (game: Game) => {
     const input = document.querySelector<HTMLInputElement>("input#answer");
 
     input.addEventListener("keyup", () => {
          const country = countryHashMap[input.value.toLowerCase()];
          if (country) {
             input.value = "";
-            completeCountries++;
-            markCountryAsComplete(country);
-            colorCountry(country);
-            addCountryToHistory(country);
-            deleteCountryAndDuplicates(country);
-            updateCounter();    
+            game.countryFound(country);
          }
     });
 }
 
-const setMouseOverEventListener = () => {
+const setMouseOverEventListener = (game: Game) => {
    const countryPanel = ELEMENT_DICT.countryPanel() as HTMLElement;
+
    for(const country of Object.values(countryHashMap)) {
       const countryElements = ELEMENT_DICT.pathsById(country.id) as NodeListOf<SVGPathElement>;
       
       countryElements.forEach(element => {
+
          element.addEventListener("mouseenter", () => {     
+
             document.querySelector("body").style.cursor = "pointer";
             element.style.opacity = 0.5;
-
             // TODO CHANGE THIS TO CONSTANT VALUE
             if (element.getAttribute("data-found") === "true") {
-               selectedCountry = country.title;
-               countryPanel.innerHTML = `<strong>${selectedCountry}</strong>`;
+               countryPanel.innerHTML = `<strong>${country.title}</strong>`;
             }
 
          });
          element.addEventListener("mouseleave", () => {
+
             document.querySelector("body").style.cursor = "auto";
             element.style.opacity = 1.0;
-            selectedCountry = "...";
-            countryPanel.innerHTML = `<strong>${selectedCountry}</strong>`;
-            
+            countryPanel.innerHTML = `<strong>...</strong>`;
+
          });
       });
   }
 }
-
-
-// TODO move all of this so we dont have global closure
-const viewBox = {
-   x: 0,
-   y: 0,
-   width: 800,
-   height: 600,
-}
-const svg = ELEMENT_DICT.svg() as SVGElement;
+const setScoreboardEventListener = (game: Game) => {
+   const help = ELEMENT_DICT.help() as HTMLElement;
+   const scoreboard = ELEMENT_DICT.scoreboard() as HTMLElement;
+   const scoreboardContainer = ELEMENT_DICT.scoreboardContainer() as HTMLElement;
+   const closeScoreboard = ELEMENT_DICT.closeScoreboard() as HTMLElement;
    
-/****
- * PAN DRAG ZOOM EFFECTS
- */
-const setViewBoxEventListeners = () => {
-   // Track position of mouse when clicked down
-   const pointerOrigin = {
-      x: 0,
-      y: 0
-   };
-
-   const translatedViewBox = {
-      x: 0,
-      y: 0,
-   };
-
-   let isPointerDown = false;
-
-   const onPointerDown = (e: PointerEvent) => {
-      isPointerDown = true;
-
-      pointerOrigin.x = e.clientX;
-      pointerOrigin.y = e.clientY;
-
-      document.querySelector("body").style.cursor = "grab";
-   };
-
-   const onPointerUp = (e: PointerEvent) => {
-      document.querySelector("body").style.cursor = "auto";
- 
-      isPointerDown = false;
-
-      // save last position
-      viewBox.x = translatedViewBox.x;
-      viewBox.y = translatedViewBox.y;
-   };
-
-   const onPointerLeave = (e) => {
- 
-      document.querySelector("body").style.cursor = "auto";
-   };
-
-   // Fix difference between viewbox and svg size
-   let ratio = viewBox.width / svg.getBoundingClientRect().width;
-
-   const onPointerMove = (e) => {
-      // Only run this function if the pointer is down
-      if (!isPointerDown) {
-         return;
-      }
-      // This prevent user to do a selection on the page
-      e.preventDefault();
-
-      // Get the pointer position
-      const pointerPosition = { x: e.clientX, y: e.clientY };
-
-      // We calculate the distance between the pointer origin and the current position
-      // The viewBox x & y values must be calculated from the original values and the distances
-      translatedViewBox.x = viewBox.x - ((pointerPosition.x - pointerOrigin.x) * ratio);
-      translatedViewBox.y = viewBox.y - ((pointerPosition.y - pointerOrigin.y) * ratio);
-
-      // We create a string with the new viewBox values
-      // The X & Y values are equal to the current viewBox minus the calculated distances
-      const viewBoxString = `${translatedViewBox.x} ${translatedViewBox.y} ${viewBox.width} ${viewBox.height}`;
-      // We apply the new viewBox values onto the SVG
-      svg.setAttribute('viewBox', viewBoxString);
-
-
-   };
-
-
-   // TODO check for window.PointerEvent and use pointer listeners for mobile. do this for touch as well.
-
-   /**
-    * // This function returns an object with X & Y values from the pointer event
-      function getPointFromEvent (event) {
-      var point = {x:0, y:0};
-      // If event is triggered by a touch event, we get the position of the first finger
-      if (event.targetTouches) {
-         point.x = event.targetTouches[0].clientX;
-         point.y = event.targetTouches[0].clientY;
-      } else {
-         point.x = event.clientX;
-         point.y = event.clientY;
-      }
-      
-      return point;
-      }
-    */
-
-   svg.addEventListener("mousedown", onPointerDown);
-   svg.addEventListener("mouseup", onPointerUp);
-   svg.addEventListener("mouseleave", onPointerLeave);
-   svg.addEventListener("mousemove", onPointerMove);
-
-   window.addEventListener('resize', () => {
-      ratio = viewBox.width / svg.getBoundingClientRect().width;
-   });
-}
-
-const setZoomEventListeners = (): void => {
-   const zoomIn = ELEMENT_DICT.zoomIn() as HTMLElement;
-   const zoomOut = ELEMENT_DICT.zoomOut() as HTMLElement;
-
-   const ZOOM_VALUE = 80;
-
-   zoomIn.addEventListener("mousedown", () => {
-      console.log("in");
-      viewBox.width -= ZOOM_VALUE;
-      viewBox.height -= ZOOM_VALUE;
-
-      // translate origin by 50 of zoom value
-      viewBox.x += ZOOM_VALUE / 2;
-      viewBox.y += ZOOM_VALUE / 2;
-
-      const viewBoxString = `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`;
-      // We apply the new viewBox values onto the SVG
-      svg.setAttribute('viewBox', viewBoxString);
-      
+   help.addEventListener("click", () => {
+      game.updateScoreboard();
+      scoreboardContainer.style.display = "block";
+      scoreboard.style.display = "flex";
    });
 
-   zoomOut.addEventListener("mousedown", () => {
-      console.log("out");
-      viewBox.width += ZOOM_VALUE;
-      viewBox.height += ZOOM_VALUE;
-
-      // translate origin by 50 of zoom value
-      viewBox.x -= ZOOM_VALUE / 2;
-      viewBox.y -= ZOOM_VALUE / 2;
-      
-      const viewBoxString = `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`;
-      // We apply the new viewBox values onto the SVG
-      svg.setAttribute('viewBox', viewBoxString);
+   closeScoreboard.addEventListener("click", () => {
+      scoreboardContainer.style.display = "none";
+      scoreboard.style.display = "none";
    });
 }
 
 window.addEventListener("load", () => {
-    drawCountries();
-    setInputEventListener();
-    setMouseOverEventListener();
-    setViewBoxEventListeners();
-    setZoomEventListeners();
-    //fillAll();
+    const game: Game = new Game(800, 600, 0, 0);
+    game.drawCountries();
+
+   // Bind event listeners to game handlers
+   setInputEventListener(game);
+   setMouseOverEventListener(game);
+   setViewBoxEventListeners();
+   setZoomEventListeners();
+   setScoreboardEventListener(game);
+
 });
