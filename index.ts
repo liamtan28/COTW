@@ -74,9 +74,11 @@ const setSVGAttribute = (node: SVGPathElement, attr: string, value: string): SVG
  * DRAW AND RENDER
  */
 
-const ELEMENT_DICT: Record<string, (any?) => Element> = {
-   mapPathGroup: () => document.querySelector("g#map-path-group"),
-   pathById: (id: string): SVGPathElement => document.querySelector<SVGPathElement>(`g#map-path-group path#${id}`),
+const ELEMENT_DICT: Record<string, (any?) => Element | NodeListOf<Element>> = {
+   svg: (): SVGElement => document.querySelector("svg"),
+   mapPathGroup: (): Element => document.querySelector<Element>("g#map-path-group"),
+   // TODO I hate this dedup solution. Its really inefficient. This is a hashmap collision issue. 
+   pathsById: (id: string): NodeListOf<SVGPathElement> => document.querySelectorAll<SVGPathElement>(`g#map-path-group path#${id}`),
    answerInput: (): HTMLInputElement => document.querySelector<HTMLInputElement>("input#answer"),
    counter: (): HTMLElement => document.querySelector<HTMLElement>("p#counter"),
    history: (): HTMLElement => document.querySelector<HTMLElement>("div#history"),
@@ -86,7 +88,7 @@ let completeCountries = 0;
 
 const drawCountries = () => {
 
-    const groupNode = ELEMENT_DICT.mapPathGroup();
+    const groupNode = ELEMENT_DICT.mapPathGroup() as Element;
     
     for (const country of Object.values(countryHashMap)) {
         let countryNode = createSVGPath();
@@ -112,15 +114,18 @@ const fillAll = () => {
 }
 
 const colorCountry = (country: Country): void => {
+
    const palette = COLOR_INDEX[country.continent];
+
    // Select either the 0th or nth index of the palette at random.
    const color = palette[Math.floor(Math.random() * palette.length)];
-
-   ELEMENT_DICT.pathById(country.id).style.fill = color;
+  
+   (<NodeListOf<SVGPathElement>>ELEMENT_DICT.pathsById(country.id)).forEach(e => e.style.fill = color);
+ 
 }
 
 const addCountryToHistory = (country: Country): void => {
-   const historyElement = ELEMENT_DICT.history();
+   const historyElement = ELEMENT_DICT.history() as Element;
    const palette = COLOR_INDEX[country.continent];
    const color = palette[Math.floor(Math.random() * palette.length)];
 
@@ -142,7 +147,7 @@ const deleteCountryAndDuplicates = (country: Country): void => {
    // 1. save the accepted names
    // 2. delete this element
    // 3. for each accepted name, delete this too.
-   console.log(Object.values(countryHashMap).length);
+   
    delete countryHashMap[country.title.toLowerCase()];
    if (country.acceptedNames) {
       for (const name of country.acceptedNames) {
@@ -151,7 +156,7 @@ const deleteCountryAndDuplicates = (country: Country): void => {
    }
 
 };
-const updateCounter = (): any => ELEMENT_DICT.counter().innerHTML = `${completeCountries}/196`;  
+const updateCounter = (): any => (ELEMENT_DICT.counter() as Element).innerHTML = `${completeCountries}/196`;  
 
 
 /** TODO ADD VIEWPORT SCROLL MANIP WITH MOUSE EVENTS */
@@ -174,20 +179,132 @@ const setInputEventListener = () => {
 
 const setMouseOverEventListener = () => {
    for(const country of Object.values(countryHashMap)) {
-      const countryElement = ELEMENT_DICT.pathById(country.id);
-      countryElement.addEventListener("mouseenter", () => {     
-         countryElement.style.opacity = 0.5;
+      const countryElements = ELEMENT_DICT.pathsById(country.id) as NodeListOf<SVGPathElement>;
+      countryElements.forEach(element => {
+         element.addEventListener("mouseenter", () => {     
+            element.style.opacity = 0.5;
+         });
+         element.addEventListener("mouseleave", () => {
+            element.style.opacity = 1.0;
+         });
       });
-      countryElement.addEventListener("mouseleave", () => {
-         countryElement.style.opacity = 1.0;
-      });
-   
   }
+}
+
+
+/****
+ * PAN DRAG ZOOM EFFECTS
+ */
+const setViewBoxEventListeners = () => {
+   const svg = ELEMENT_DICT.svg() as SVGElement;
+   
+   // Track position of mouse when clicked down
+   const pointerOrigin = {
+      x: 0,
+      y: 0
+   };
+
+   const viewBox = {
+      x: 0,
+      y: 0,
+      width: 800,
+      height: 600,
+   }
+
+   const translatedViewBox = {
+      x: 0,
+      y: 0,
+   };
+
+   let isPointerDown = false;
+
+   const onPointerDown = (e: PointerEvent) => {
+      e.preventDefault();
+      isPointerDown = true;
+
+      pointerOrigin.x = e.clientX;
+      pointerOrigin.y = e.clientY;
+
+      document.querySelector("body").style.cursor = "grab";
+   };
+
+   const onPointerUp = (e: PointerEvent) => {
+      document.querySelector("body").style.cursor = "auto";
+      e.preventDefault();
+      isPointerDown = false;
+
+      // save last position
+      viewBox.x = translatedViewBox.x;
+      viewBox.y = translatedViewBox.y;
+   };
+
+   const onPointerLeave = (e) => {
+      e.preventDefault();
+      document.querySelector("body").style.cursor = "auto";
+   };
+
+   // Fix difference between viewbox and svg size
+   let ratio = viewBox.width / svg.getBoundingClientRect().width;
+
+   const onPointerMove = (e) => {
+      // Only run this function if the pointer is down
+      if (!isPointerDown) {
+         return;
+      }
+      // This prevent user to do a selection on the page
+      e.preventDefault();
+
+      // Get the pointer position
+      const pointerPosition = { x: e.clientX, y: e.clientY };
+
+      // We calculate the distance between the pointer origin and the current position
+      // The viewBox x & y values must be calculated from the original values and the distances
+      translatedViewBox.x = viewBox.x - ((pointerPosition.x - pointerOrigin.x) * ratio);
+      translatedViewBox.y = viewBox.y - ((pointerPosition.y - pointerOrigin.y) * ratio);
+
+      // We create a string with the new viewBox values
+      // The X & Y values are equal to the current viewBox minus the calculated distances
+      const viewBoxString = `${translatedViewBox.x} ${translatedViewBox.y} ${viewBox.width} ${viewBox.height}`;
+      // We apply the new viewBox values onto the SVG
+      svg.setAttribute('viewBox', viewBoxString);
+      
+
+   };
+
+
+   // TODO check for window.PointerEvent and use pointer listeners for mobile. do this for touch as well.
+
+   /**
+    * // This function returns an object with X & Y values from the pointer event
+      function getPointFromEvent (event) {
+      var point = {x:0, y:0};
+      // If event is triggered by a touch event, we get the position of the first finger
+      if (event.targetTouches) {
+         point.x = event.targetTouches[0].clientX;
+         point.y = event.targetTouches[0].clientY;
+      } else {
+         point.x = event.clientX;
+         point.y = event.clientY;
+      }
+      
+      return point;
+      }
+    */
+
+   svg.addEventListener("mousedown", onPointerDown);
+   svg.addEventListener("mouseup", onPointerUp);
+   svg.addEventListener("mouseleave", onPointerLeave);
+   svg.addEventListener("mousemove", onPointerMove);
+
+   window.addEventListener('resize', () => {
+      ratio = viewBox.width / svg.getBoundingClientRect().width;
+   });
 }
 
 window.addEventListener("load", () => {
     drawCountries();
     setInputEventListener();
-    setMouseOverEventListener();
+   // setMouseOverEventListener();
+    setViewBoxEventListeners();
     //fillAll();
 });
