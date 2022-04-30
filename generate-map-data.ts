@@ -9,12 +9,12 @@
 
 // Same as used in app.
 enum Continent {
-   NORTH_AMERICA,
-   SOUTH_AMERICA,
-   EUROPE,
-   ASIA,
-   AFRICA,
-   OCEANIA,
+   NORTH_AMERICA = "N. America",
+   SOUTH_AMERICA = "S. America",
+   EUROPE = "Europe",
+   ASIA = "Asia",
+   AFRICA = "Africa",
+   OCEANIA = "Oceania",
 }
 
 const COLOR_INDEX: Record<Continent, string[]> = {
@@ -263,16 +263,37 @@ const COLOR_INDEX: Record<Continent, string[]> = {
  "Vanuatu",
  ].map(c => c.toLowerCase());
  
-interface CountryInstanceParams {
+type CountryRawData = {
    id: string;
    title: string;
-   acceptedNames?: string[];
    svgPath: string;
-   continent?: Continent;
+   continent: Continent;
+   acceptedNames?: string[];
 }
  
-// SVG map data with regions associated
-const mapData: Partial<CountryInstanceParams[]> = [
+type MapData = {
+   continents: Record<Continent, {
+      x: number,
+      y: number,
+      uniqueCountryCount: number,
+      countries: Record<string, {
+         id: string,
+         title: string,
+         svgPath: string,
+         continent: Continent,
+         acceptedNames: string[],
+         fill: string,
+      }>
+   }>,
+   oceans: {
+      x: string,
+      y: string,
+      title: string,
+   }[],
+}
+
+// SVG PATH DATA FROM ONLINe
+const countryData: Partial<CountryRawData>[] = [
      {
         id: "AD",
         title: "Andorra",
@@ -1572,7 +1593,7 @@ const mapData: Partial<CountryInstanceParams[]> = [
 ];
 
 // Associated with contients via the above regions
-const mapDataWithContinents: CountryInstanceParams[] = mapData.map(country => {
+const countryDataWithContinents: CountryRawData[] = countryData.map(country => {
    
    switch (true) {
      case countriesOfEurope.includes(country.title.toLowerCase()):
@@ -1616,9 +1637,9 @@ const mapDataWithContinents: CountryInstanceParams[] = mapData.map(country => {
 });
 
 // built into hashmap with key country title and value country object.
-const countryHashMap: Record<Continent, Record<string, Partial<CountryInstanceParams>>> = 
-mapDataWithContinents.reduce((prev, curr) => {
-   prev[curr.continent][curr.title.toLowerCase()] = {
+const countryHashMap: MapData["continents"] = 
+countryDataWithContinents.reduce((prev, curr) => {
+   prev[curr.continent].countries[curr.title.toLowerCase()] = {
          id: curr.id,
          title: curr.title,
          svgPath: curr.svgPath,
@@ -1634,7 +1655,7 @@ mapDataWithContinents.reduce((prev, curr) => {
          if (name === curr.title) {
             continue;
          }
-         prev[curr.continent][name.toLowerCase()] = {
+         prev[curr.continent].countries[name.toLowerCase()] = {
                id: curr.id,
                title: name,
                svgPath: curr.svgPath,
@@ -1649,13 +1670,54 @@ mapDataWithContinents.reduce((prev, curr) => {
    return prev;
 
 }, {
-   [Continent.NORTH_AMERICA]: {},
-   [Continent.SOUTH_AMERICA]: {},
-   [Continent.EUROPE]: {},
-   [Continent.ASIA]: {},
-   [Continent.AFRICA]: {},
-   [Continent.OCEANIA]: {},
+   [Continent.NORTH_AMERICA]: {
+      x: 40,
+      y: 310,
+      uniqueCountryCount: 23,
+      countries: {},
+   },
+   [Continent.SOUTH_AMERICA]: {
+      x: 195,
+      y: 525,
+      uniqueCountryCount: 12,
+      countries: {},
+   },
+   [Continent.EUROPE]: {
+      x: 410,
+      y: 315,
+      uniqueCountryCount: 45,
+      countries: {},
+   },
+   [Continent.ASIA]: {
+      x: 640,
+      y: 420,
+      uniqueCountryCount: 49,
+      countries: {},
+   },
+   [Continent.AFRICA]: {
+      x: 450,
+      y: 480,
+      uniqueCountryCount: 54,
+      countries: {},
+   },
+   [Continent.OCEANIA]: {
+      x: 800,
+      y: 580,
+      uniqueCountryCount: 14,
+      countries: {},
+   },
 });
+
+const mapData: MapData = {
+   continents: countryHashMap,
+   oceans: [
+      { x: "320", y: "370", title: "North Atlantic Ocean" },
+      { x: "400", y: "540", title: "South Atlantic Ocean" },
+      { x: "890", y: "405", title: "North Pacific Ocean" },
+      { x: "30",  y: "540", title: "South Pacific Ocean" },
+      { x: "680", y: "520", title: "Indian Ocean" },
+   ]
+}
 
 /**
  * Final hash struct
@@ -1669,5 +1731,5 @@ mapDataWithContinents.reduce((prev, curr) => {
  * }
  */
 window.addEventListener("load", () => {
-   document.querySelector("code#output").innerHTML = JSON.stringify(countryHashMap, null, 2);   
+   document.querySelector("code#output").innerHTML = JSON.stringify(mapData, null, 2);   
 });

@@ -1,15 +1,36 @@
 import { default as mapData } from "./map-data.json";
 import { ELEMENT_DICT } from "./element-dict";
-import { Country } from "./country";
+import { ContinentMarker, Country, OceanMarker } from "./game-object";
 import { setViewBoxEventListeners, setZoomEventListeners } from "./map-controls";
 
 enum Continent {
-   NORTH_AMERICA,
-   SOUTH_AMERICA,
-   EUROPE,
-   ASIA,
-   AFRICA,
-   OCEANIA,
+   NORTH_AMERICA = "N. America",
+   SOUTH_AMERICA = "S. America",
+   EUROPE = "Europe",
+   ASIA = "Asia",
+   AFRICA = "Africa",
+   OCEANIA = "Oceania",
+}
+
+type MapData = {
+   continents: Record<Continent, {
+      x: number,
+      y: number,
+      uniqueCountryCount: number,
+      countries: Record<string, {
+         id: string,
+         title: string,
+         svgPath: string,
+         continent: Continent,
+         acceptedNames: string[],
+         fill: string,
+      }>
+   }>,
+   oceans: {
+      x: string,
+      y: string,
+      title: string,
+   }[],
 }
 
 /***
@@ -19,77 +40,102 @@ enum Continent {
 type GameState = Record<Continent, {
       numFoundCountries: number,
       totalNumCountries: number,
+      marker: ContinentMarker,
       isComplete: boolean,
       countryMap: Record<string, Country>
    }
 >;
 
 class GameStateManager {
-   private gameState: GameState =  {
-      [Continent.ASIA]: {
-         numFoundCountries: 0,
-         totalNumCountries: 49,
-         isComplete: false,
-         countryMap: {},
-      },
+   private gameState: GameState = {
       [Continent.NORTH_AMERICA]: {
          numFoundCountries: 0,
-         totalNumCountries: 23,
+         totalNumCountries: 0,
          isComplete: false,
+         marker: null,
          countryMap: {},
       },
       [Continent.SOUTH_AMERICA]: {
          numFoundCountries: 0,
-         totalNumCountries: 12,
+         totalNumCountries: 0,
          isComplete: false,
+         marker: null,
          countryMap: {},
       },
       [Continent.EUROPE]: {
          numFoundCountries: 0,
-         totalNumCountries: 45,
+         totalNumCountries: 0,
          isComplete: false,
+         marker: null,
+         countryMap: {},
+      },
+      [Continent.ASIA]: {
+         numFoundCountries: 0,
+         totalNumCountries: 0,
+         isComplete: false,
+         marker: null,
          countryMap: {},
       },
       [Continent.AFRICA]: {
          numFoundCountries: 0,
-         totalNumCountries: 54,
+         totalNumCountries: 0,
          isComplete: false,
+         marker: null,
          countryMap: {},
       },
       [Continent.OCEANIA]: {
          numFoundCountries: 0,
-         totalNumCountries: 14,
+         totalNumCountries: 0,
          isComplete: false,
+         marker: null,
          countryMap: {},
       },
-   };
-
-   public constructor(mapData: any) {
-      for(const continent of Object.keys(this.gameState)) {
-         const continentData = mapData[continent];
-       
-         for (const [countryTitle, countryData] of Object.entries(continentData)) {
-            const country = new Country(
-               {
-                  id: (countryData as any).id,
-                  title: (countryData as any).title,
-                  continent: (countryData as any).continent,
-                  acceptedNames: (countryData as any).acceptedNames,
-               },
-               (countryData as any).svgPath,
-               (countryData as any).fill,
-            );
-            this.gameState[country.continent].countryMap[countryTitle] = country;
-         }
-      }
    }
 
-   public drawAllCountries(): void {
+
+   public constructor(mapData: MapData) {
+      console.log(`[GameStateManager] Creating instance`, { mapData });
+      
+      for (const [title, data] of Object.entries(mapData.continents)) {
+         Object.defineProperty(this.gameState, title, {});
+
+         // Set Continent property in game state
+         this.gameState[title] = {
+            ...this.gameState[title], // Use default values
+            totalNumCountries: data.uniqueCountryCount,
+         }
+
+         const marker = new ContinentMarker(title, data.uniqueCountryCount, data.x, data.y);
+         this.gameState[title].marker = marker;
+
+         // Set country properties on continent
+         for (const country of Object.values(data.countries)) {
+            const countryInstance = new Country({
+               id: country.id,
+               title: country.title,
+               acceptedNames: country.acceptedNames,
+               continent: country.continent,
+            },
+            country.svgPath,
+            country.fill,
+            );
+
+            this.gameState[title].countryMap[country.title.toLowerCase()] = countryInstance;
+         }
+      }
+      console.log(`[GameStateManager] Processed JSON`, { gameState: this.gameState });
+   }
+
+   public drawMap(): void {
+      const map = ELEMENT_DICT.map() as SVGElement;
       const mapPathGroup = ELEMENT_DICT.mapPathGroup() as SVGElement;
 
       for(const continent of Object.keys(this.gameState)) {
-         const continentData: Record<string, Country> = this.gameState[continent].countryMap;
-         for (const country of Object.values(continentData)) {
+         const continentData: Record<string, Country> = this.gameState[continent];
+         
+         continentData.marker.draw(map);
+         
+         for (const country of Object.values(continentData.countryMap)) {
             country.draw(mapPathGroup);
          }
       }
@@ -116,14 +162,22 @@ class GameStateManager {
          country.draw(mapPathGroup);
 
          this.gameState[country.continent].numFoundCountries++;
+
+         // Update continent marker in DOM.
+         this.gameState[country.continent].marker.incrementScore();
+         this.gameState[country.continent].marker.clear(map);
+         this.gameState[country.continent].marker.draw(map);
+
+         console.log(`[GameStateManager] Correct answer ${country.title}`, { gameState: this.gameState });
          return true;
       }
       return false;
    }
 
    private removeDuplicateCountries(country: Country): void {
+      console.log(`[GameStateManager] Removing duplicates`, { duplicates: country.otherNames })
       for (const name of country.otherNames) {
-         delete this.gameState[country.continent][name.toLowerCase()];
+         delete this.gameState[country.continent].countryMap[name.toLowerCase()];
       }
    }
 
@@ -141,9 +195,18 @@ const setInputEventListener = (game: GameStateManager) => {
     });
 }
 
-const game: GameStateManager = new GameStateManager(mapData);
+const game: GameStateManager = new GameStateManager(mapData as unknown as MapData);
+game.drawMap();
 
-game.drawAllCountries();
+/****************
+ * OCEAN MARKERS
+ */
+const map = ELEMENT_DICT.map() as SVGElement;
+
+for (const ocean of mapData.oceans) {
+   const marker = new OceanMarker(ocean.title, ocean.x, ocean.y);
+   marker.draw(map);
+}
 
 setInputEventListener(game);
 setViewBoxEventListeners();

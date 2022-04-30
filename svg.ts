@@ -1,4 +1,4 @@
-export class SVGDrawable {
+export class SVGPathDrawable {
 
     private path: string;
     private SVG_NAMESPACE: string;
@@ -40,4 +40,52 @@ export class SVGDrawable {
         drawToSVG.appendChild(this.node);
     }
 
+}
+
+export class SVGTextDrawable {
+    private text: string;
+    private x: number;
+    private y: number;
+    private SVG_NAMESPACE: string;
+    private node: SVGTextElement;
+
+    public constructor(namespace: string, text: string, x: number, y: number) {
+        this.SVG_NAMESPACE = namespace;
+        this.text = text;
+        this.x = x;
+        this.y = y;
+        this.node = this.createSVGText();
+    }
+
+    private createSVGText(): SVGTextElement {
+        return document.createElementNS(
+            this.SVG_NAMESPACE,
+            "text",
+        ) as unknown as SVGTextElement;
+    }
+
+    public setAttribute(name: string, value): void {
+        this.node.setAttribute(name, value);
+    }
+
+    public clear(clearFromSVG: SVGElement): void {
+        clearFromSVG.removeChild(this.node);
+    }
+
+    public updateText(text: string): void {
+        this.text = text;
+    }
+
+    public drawTo(
+        drawToSVG: SVGElement,
+        fill: string,
+    ): void {
+
+        this.node.setAttribute("x", String(this.x));
+        this.node.setAttribute("y", String(this.y));
+
+        this.node.style.fill = fill;
+        this.node.innerHTML = `${this.text}`;
+        drawToSVG.appendChild(this.node);
+    }
 }
