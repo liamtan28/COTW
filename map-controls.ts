@@ -7,7 +7,9 @@ const viewBox = {
     height: 600,
  }
  const svg = ELEMENT_DICT.svg() as SVGElement;
-    
+    // Fix difference between viewbox and svg size
+    let ratio = viewBox.width / svg.getBoundingClientRect().width;
+ 
  /****
   * PAN DRAG ZOOM EFFECTS
   */
@@ -49,9 +51,6 @@ const viewBox = {
        document.querySelector("body").style.cursor = "auto";
     };
  
-    // Fix difference between viewbox and svg size
-    let ratio = viewBox.width / svg.getBoundingClientRect().width;
- 
     const onPointerMove = (e) => {
        // Only run this function if the pointer is down
        if (!isPointerDown) {
@@ -86,10 +85,12 @@ const viewBox = {
     svg.addEventListener("mousemove", onPointerMove);
  
     window.addEventListener('resize', () => {
-       ratio = viewBox.width / svg.getBoundingClientRect().width;
+       ratio = calcRatio();
     });
  }
  
+export const calcRatio = () => viewBox.width / svg.getBoundingClientRect().width;
+
 export const setZoomEventListeners = (): void => {
     const zoomIn = ELEMENT_DICT.zoomIn() as HTMLElement;
     const zoomOut = ELEMENT_DICT.zoomOut() as HTMLElement;
@@ -104,6 +105,8 @@ export const setZoomEventListeners = (): void => {
        // translate origin by 50 of zoom value
        viewBox.x += ZOOM_VALUE / 2;
        viewBox.y += ZOOM_VALUE / 2;
+
+      ratio = calcRatio();
  
        const viewBoxString = `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`;
        // We apply the new viewBox values onto the SVG
@@ -119,6 +122,8 @@ export const setZoomEventListeners = (): void => {
        // translate origin by 50 of zoom value
        viewBox.x -= ZOOM_VALUE / 2;
        viewBox.y -= ZOOM_VALUE / 2;
+
+       ratio = calcRatio();
        
        const viewBoxString = `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`;
        // We apply the new viewBox values onto the SVG

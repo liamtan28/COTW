@@ -5,7 +5,7 @@
 		body {
 			margin: 0;
 			padding: 0;
-			background: #8AB4F8;
+			background: #fff;
 			width: 100%;
 			height: 100%;
 			display: flex;
@@ -135,38 +135,32 @@
 			z-index: 1;
 		}
 		div#scoreboard {
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
+
 			background: #fff;
-			width: 800px;
-			height: 600px;
-			z-index: 2;
-			border-radius: 10px;
-			padding: 1rem;
-			display: none;
-			flex-direction: column;
-			overflow: scroll;
-		}
-		header#scoreboard-header {
-		
-			padding: 0;
-			margin: 0 0 2rem 0;
+			flex: 1;
+	
 			display: flex;
-			justify-content: space-between;
-			width: 800px;
+			flex-direction: column;
 			
+			height: 600px;
+			border-bottom: 2px solid lightgrey;
+		
+			box-sizing: border-box;
+			margin: 0 0.5rem;
 		}
-		header#scoreboard-header svg {
-			margin-right: 0;
-		}
+	
 		p.scoreboard__continent-header {
 			font-weight: 400;
 			font-size: 1.2rem;
+			margin: 0 0 1rem 0;
 			padding: 0.5rem;
 			color: #fff;
+			text-align: center;
 			border-radius: 10px;
+		}
+		p.scoreboard__continent-header strong {
+			font-size: 0.8rem;
+			padding: 0 0.25rem;
 		}
 
 		text.score-marker {
@@ -181,44 +175,24 @@
 			
 		}
 
-		svg {
+		svg#map {
 			shape-rendering: optimizeSpeed;
+			background: #8AB4F8;
+			width: 800px;
+		}
+		div#game-area {
+			display: flex;
+			flex-direction: row;
+			margin-top: 52px;
+		
 		}
 	</style>
 	<body>
 
+		
 		<div id="scoreboard-container">
 				
 		</div>
-
-
-
-
-
-
-		<div id="scoreboard">
-			<header id="scoreboard-header">
-				<strong>Scoreboard</strong>
-				<svg class="control" xmlns="http://www.w3.org/2000/svg" id="close-scoreboard" viewBox="0 0 24 24" width="24" height="24"><path d="M23.707.293h0a1,1,0,0,0-1.414,0L12,10.586,1.707.293a1,1,0,0,0-1.414,0h0a1,1,0,0,0,0,1.414L10.586,12,.293,22.293a1,1,0,0,0,0,1.414h0a1,1,0,0,0,1.414,0L12,13.414,22.293,23.707a1,1,0,0,0,1.414,0h0a1,1,0,0,0,0-1.414L13.414,12,23.707,1.707A1,1,0,0,0,23.707.293Z"/></svg>
-			</header>
-
-
-			<p class="scoreboard__continent-header" style="background: #20bf6b;">Europe</p>
-			<section class="scoreboard__continent-container" id="europe"></section>
-			<p class="scoreboard__continent-header" style="background: #8854d0">Oceania</p>
-			<section class="scoreboard__continent-container" id="oceania"></section>
-			<p class="scoreboard__continent-header" style="background: #fa8231">North America</p>
-			<section class="scoreboard__continent-container" id="northamerica"></section>
-			<p class="scoreboard__continent-header" style="background: #f7b731">South America</p>
-			<section class="scoreboard__continent-container" id="southamerica"></section>
-			<p class="scoreboard__continent-header" style="background: #eb3b5a">Asia</p>
-			<section class="scoreboard__continent-container" id="asia"></section>
-			<p class="scoreboard__continent-header" style="background: #3867d6">Africa</p>
-			<section class="scoreboard__continent-container" id="misc"></section>
-			<p class="scoreboard__continent-header" style="background: #4b6584">Misc</p>
-		</div>
-
-
 
 
 
@@ -257,61 +231,85 @@
 				<svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" data-name="Layer 1" viewBox="0 0 24 24" width="24" height="24"><path d="M13,2.051V1a1,1,0,0,0-2,0V2.051A10.98,10.98,0,0,0,3.681,20.176,3.024,3.024,0,0,0,2,23a1,1,0,0,0,2,0,1.2,1.2,0,0,1,1.11-1.229.932.932,0,0,0,.2-.062,10.924,10.924,0,0,0,13.39,0,1.033,1.033,0,0,0,.182.064A1.2,1.2,0,0,1,20,23a1,1,0,0,0,2,0,3.024,3.024,0,0,0-1.681-2.824A10.98,10.98,0,0,0,13,2.051ZM3,13a9,9,0,1,1,9,9A9.011,9.011,0,0,1,3,13Z"/><path d="M19.215,0a1,1,0,0,0,0,2A2.59,2.59,0,0,1,22,4.5a1,1,0,0,0,2,0A4.6,4.6,0,0,0,19.215,0Z"/><path d="M2,4.5A2.59,2.59,0,0,1,4.785,2a1,1,0,0,0,0-2A4.6,4.6,0,0,0,0,4.5a1,1,0,0,0,2,0Z"/><path d="M13,11.586V7a1,1,0,0,0-2,0v5a1,1,0,0,0,.293.707l3,3a1,1,0,0,0,1.414-1.414Z"/></svg>
 			</span>
 		</header>
-		<div id="map-zoom-container">
-			<svg
-				xmlns:svg="http://www.w3.org/2000/svg"
-				viewBox="0 0 800 600"
-				width="100%" 
-				id="map"
-				height="100%"
-			>
-
-				<!--OCEAN MARKERS-->
-				<text x="320" y="370" class="ocean-marker">North Atlantic Ocean</text>
-				<text x="400" y="540" class="ocean-marker">South Atlantic Ocean</text>
-				<text x="890" y="405" class="ocean-marker">North Pacific Ocean</text>
-				<text x="30" y="540" class="ocean-marker">South Pacific Ocean</text>
-				<text x="680" y="520" class="ocean-marker">Indian Ocean</text>
-
-				<!--SCORE MARKERS-->
-			
-				<text x="450" y="480" class="score-marker" id="score-marker-4">
-					Africa <tspan>(0/54)</tspan>
-				</text>
-
-				<text x="640" y="420" class="score-marker" id="score-marker-3">
-					Asia <tspan>(0/48)</tspan>
-				</text>
-
-				<text x="195" y="525" class="score-marker" id="score-marker-1">
-					S. America <tspan>(0/12)</tspan>
-				</text>
-
-				<text x="40" y="310" class="score-marker" id="score-marker-0">
-					N. America <tspan>(0/23)</tspan>
-				</text>
-
-				<text x="410" y="315" class="score-marker" id="score-marker-2">
-					Europe <tspan>(0/45)</tspan>
-				</text>
-
-				<text x="800" y="580" fill="rgba(0,0,0,0.6)" class="score-marker" id="score-marker-5">
-					Oceania <tspan>(0/14)</tspan>
-				</text>
 
 
 
 
-				<!--COUNTRY PATHS-->
-				<g id="map-path-group"></g>
-			</svg>
-			<div id="history">
-				<p class="country-entry"><strong>...</strong></p>
+
+		<div id="game-area">
+			<div id="map-zoom-container">
+				<svg
+					xmlns:svg="http://www.w3.org/2000/svg"
+					viewBox="0 0 800 600"
+					width="800px" 
+					id="map"
+					height="600px"
+				>
+
+					<!--OCEAN MARKERS-->
+					<text x="320" y="370" class="ocean-marker">North Atlantic Ocean</text>
+					<text x="400" y="540" class="ocean-marker">South Atlantic Ocean</text>
+					<text x="890" y="405" class="ocean-marker">North Pacific Ocean</text>
+					<text x="30" y="540" class="ocean-marker">South Pacific Ocean</text>
+					<text x="680" y="520" class="ocean-marker">Indian Ocean</text>
+
+					<!--SCORE MARKERS-->
+				
+					<text x="450" y="480" class="score-marker" id="score-marker-4">
+						Africa <tspan>(0/54)</tspan>
+					</text>
+
+					<text x="640" y="420" class="score-marker" id="score-marker-3">
+						Asia <tspan>(0/48)</tspan>
+					</text>
+
+					<text x="195" y="525" class="score-marker" id="score-marker-1">
+						S. America <tspan>(0/12)</tspan>
+					</text>
+
+					<text x="40" y="310" class="score-marker" id="score-marker-0">
+						N. America <tspan>(0/23)</tspan>
+					</text>
+
+					<text x="410" y="315" class="score-marker" id="score-marker-2">
+						Europe <tspan>(0/45)</tspan>
+					</text>
+
+					<text x="800" y="580" fill="rgba(0,0,0,0.6)" class="score-marker" id="score-marker-5">
+						Oceania <tspan>(0/14)</tspan>
+					</text>
+
+
+
+
+					<!--COUNTRY PATHS-->
+					<g id="map-path-group"></g>
+				</svg>
+				<div id="history">
+					<p class="country-entry"><strong>...</strong></p>
+				</div>
+
+				<div id="country-panel">
+					<strong>...</strong>
+				</div>
 			</div>
 
-			<div id="country-panel">
-				<strong>...</strong>
+			<div id="scoreboard">
+				<p class="scoreboard__continent-header" style="background: #20bf6b;">Europe<strong>(0/45)</strong></p>
+				<section class="scoreboard__continent-container" id="europe"></section>
+				<p class="scoreboard__continent-header" style="background: #8854d0">Oceania</p>
+				<section class="scoreboard__continent-container" id="oceania"></section>
+				<p class="scoreboard__continent-header" style="background: #fa8231">North America</p>
+				<section class="scoreboard__continent-container" id="northamerica"></section>
+				<p class="scoreboard__continent-header" style="background: #f7b731">South America</p>
+				<section class="scoreboard__continent-container" id="southamerica"></section>
+				<p class="scoreboard__continent-header" style="background: #eb3b5a">Asia</p>
+				<section class="scoreboard__continent-container" id="asia"></section>
+				<p class="scoreboard__continent-header" style="background: #3867d6">Africa</p>
+				<section class="scoreboard__continent-container" id="misc"></section>
 			</div>
+
 		</div>
+
 	</body>
 </html>
