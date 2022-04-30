@@ -157,6 +157,7 @@ class GameStateManager {
          country.setFound(true);
          this.removeDuplicateCountries(country);
 
+         const map = ELEMENT_DICT.map() as SVGElement;
          const mapPathGroup = ELEMENT_DICT.mapPathGroup() as SVGElement;
          country.clear(mapPathGroup);
          country.draw(mapPathGroup);
@@ -169,6 +170,7 @@ class GameStateManager {
          this.gameState[country.continent].marker.draw(map);
 
          this.updateScoreboard(country);
+         this.updateCounters();
 
          console.log(`[GameStateManager] Correct answer ${country.title}`, { gameState: this.gameState });
          return true;
@@ -190,7 +192,8 @@ class GameStateManager {
       }
 
       // Remove all elements and replace in alphabetical order.
-
+      // !TODO this is pretty inefficent. Probably need to come up with a way to inst
+      // ! BUG doesn't delete duplicates
       const entries = document.querySelectorAll('.scoreboard-entry');
       const sortedEntries = Array.from(entries).sort((a, b) => a.textContent.localeCompare(b.textContent));
       this.clearScoreboard();
@@ -235,6 +238,11 @@ class GameStateManager {
       scoreboardSections.forEach(section => section.innerHTML = null);
    }
 
+   private updateCounters(): void {
+      const counter = ELEMENT_DICT.counter() as HTMLElement;
+      const count = Object.values(this.gameState).reduce((prev, curr) => prev + curr.numFoundCountries, 0);
+      counter.innerHTML = `${count}/197`;  
+   }
 }
 
 const setInputEventListener = (game: GameStateManager) => {
@@ -400,79 +408,9 @@ setFinishEventListener(game);
 //    } 
 
 
-//    /********************
-//     * Public interfaces
-//     */
-
-//    public countryFound(country: Country): void {
-  
-//       this.completeCountries++;
-//       // Adds found: true prop to DOM element, and pushes to scoreboard
-//       this.markCountryAsComplete(country);
-//       // Finds SVG path, and changes fill color
-//       this.colorCountry(country);
-//       // Adds DOM element to history scroller at bottom
-//       this.addCountryToHistory(country);
-//       // Removes country from dataset (so it can't be found again), as well as any duplicates
-//       this.deleteCountryAndDuplicates(country);
-//       // Updates DOM counters.
-//       this.updateCounters(country);   
-//    }
-
-//    public drawCountries(): void {
-      
-//       const groupNode = ELEMENT_DICT.mapPathGroup() as Element;
-      
-//       for (const country of Object.values(countryHashMap)) {
-//             let countryNode = Game.createSVGPath();
-   
-//             countryNode = Game.setSVGAttribute(countryNode, "title", country.title);
-//             countryNode.id = country.id;
-//             countryNode.setAttribute("d", country.svgPath);
-//             countryNode.style.fill = "#d1d8e0"; // default grey
-//             countryNode.style.stroke = "rgba(0,0,0,0.2)"; // dark grey
-//             countryNode.style.strokeWidth = "0.5"; // dark grey
-//             countryNode.setAttribute("data-found", "false");
-//             groupNode.appendChild(countryNode);
-//       }
-          
-//    }
-
-//    public finish(): void {
-//       console.log(countryHashMap);
-//    };
-
-   
-//    /********************
-//     * SVG UTILS
-//     */
-
-//    private static createSVGPath(): SVGPathElement {
-//       return document.createElementNS(Game.SVG_NAMESPACE, "path") as SVGPathElement;
-//    }
-//    private static setSVGAttribute(node: SVGPathElement, attr: string, value: string): SVGPathElement {
-//        node.setAttributeNS(Game.SVG_NAMESPACE, attr, value);
-//        return node;
-//    };   
-
-// }
 
 
-// /****************
-//  * Event listeners
-//  */
 
-// const setInputEventListener = (game: Game) => {
-//     const input = document.querySelector<HTMLInputElement>("input#answer");
-
-//     input.addEventListener("keyup", () => {
-//          const country = countryHashMap[input.value.toLowerCase()];
-//          if (country) {
-//             input.value = "";
-//             game.countryFound(country);
-//          }
-//     });
-// }
 
 // const setMouseOverEventListener = (game: Game) => {
 //    const countryPanel = ELEMENT_DICT.countryPanel() as HTMLElement;
@@ -502,48 +440,3 @@ setFinishEventListener(game);
 //       });
 //   }
 // }
-// const setScoreboardEventListener = (game: Game) => {
-//    const help = ELEMENT_DICT.help() as HTMLElement;
-//    const scoreboard = ELEMENT_DICT.scoreboard() as HTMLElement;
-//    const scoreboardContainer = ELEMENT_DICT.scoreboardContainer() as HTMLElement;
-//    const closeScoreboard = ELEMENT_DICT.closeScoreboard() as HTMLElement;
-   
-//    help.addEventListener("click", () => {
-//       game.updateScoreboard();
-//       scoreboardContainer.style.display = "block";
-//       scoreboard.style.display = "flex";
-//    });
-
-//    closeScoreboard.addEventListener("click", () => {
-//       scoreboardContainer.style.display = "none";
-//       scoreboard.style.display = "none";
-//    });
-// }
-// const setFinishEventListener = (game: Game) => {
-//    const finishButton = ELEMENT_DICT.finish() as HTMLElement;
-
-//    finishButton.addEventListener("click", game.finish);
-// }
-
-// window.addEventListener("load", () => {
-//     const game: Game = new Game(800, 600, 0, 0);
-//     game.drawCountries();
-
-//    // Bind event listeners to game handlers
-//    setInputEventListener(game);
-//    setMouseOverEventListener(game);
-//    setViewBoxEventListeners();
-//    setZoomEventListeners();
-//    setScoreboardEventListener(game);
-//    setFinishEventListener(game);
-
-//    // for (const country of Object.values(countryHashMap)) {
-//    //    game.countryFound(country);
-//    // }
-// });
-
-// /****
-//  * NUMBER MARKERS NEXT TO EACH REGION
-//  * 
-//  * 54 for Africa (dont forget sao tome)
-//  */
