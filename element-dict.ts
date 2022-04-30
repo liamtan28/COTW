@@ -1,6 +1,6 @@
-export const ELEMENT_DICT: Record<string, (any?) => Element | NodeListOf<Element>> = {
-    svg: (): SVGElement => document.querySelector("svg#map"),
-    mapPathGroup: (): Element => document.querySelector<Element>("g#map-path-group"),
+export const ELEMENT_DICT: Record<string, (any?) => Element | SVGElement> = {
+    map: (): SVGElement => document.querySelector("svg#map"),
+    mapPathGroup: (): SVGElement => document.querySelector<SVGElement>("g#map-path-group"),
     // TODO I hate this dedup solution. Its really inefficient. This is a hashmap collision issue. 
     pathsById: (id: string): NodeListOf<SVGPathElement> => document.querySelectorAll<SVGPathElement>(`g#map-path-group path#${id}`),
     answerInput: (): HTMLInputElement => document.querySelector<HTMLInputElement>("input#answer"),

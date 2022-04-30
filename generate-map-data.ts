@@ -15,8 +15,16 @@ enum Continent {
    ASIA,
    AFRICA,
    OCEANIA,
-   NOT_APPLICABLE,
 }
+
+const COLOR_INDEX: Record<Continent, string[]> = {
+   [Continent.ASIA]: ["#fc5c65", "#eb3b5a"],
+   [Continent.NORTH_AMERICA]: ["#fd9644", "#fa8231"],
+   [Continent.SOUTH_AMERICA]: [ "#fed330", "#f7b731"],
+   [Continent.EUROPE]: ["#26de81", "#20bf6b"],
+   [Continent.AFRICA]: ["#4b7bec", "#3867d6"],
+   [Continent.OCEANIA]: ["#a55eea", "#8854d0"],
+};
  
  // Source of truth. Countries split into their regions.
  const countriesOfEurope = [
@@ -255,7 +263,7 @@ enum Continent {
  "Vanuatu",
  ].map(c => c.toLowerCase());
  
-interface Country {
+interface CountryInstanceParams {
    id: string;
    title: string;
    acceptedNames?: string[];
@@ -264,7 +272,7 @@ interface Country {
 }
  
 // SVG map data with regions associated
-const mapData: Country[] = [
+const mapData: Partial<CountryInstanceParams[]> = [
      {
         id: "AD",
         title: "Andorra",
@@ -1564,7 +1572,7 @@ const mapData: Country[] = [
 ];
 
 // Associated with contients via the above regions
-const mapDataWithContinents: Country[] = mapData.map(country => {
+const mapDataWithContinents: CountryInstanceParams[] = mapData.map(country => {
    
    switch (true) {
      case countriesOfEurope.includes(country.title.toLowerCase()):
@@ -1600,35 +1608,66 @@ const mapDataWithContinents: Country[] = mapData.map(country => {
      default:
        return {
          ...country,
-         continent: Continent.NOT_APPLICABLE,
+         // never
+         continent: Continent.OCEANIA,
        };
    
    }
 });
 
 // built into hashmap with key country title and value country object.
-const countryHashMap: Record<string, Country> = mapDataWithContinents.reduce((prev, curr) => {
-   
-   const newMap = {
-      ...prev,
-      [curr.title.toLowerCase()]: curr,
-   };
+const countryHashMap: Record<Continent, Record<string, Partial<CountryInstanceParams>>> = 
+mapDataWithContinents.reduce((prev, curr) => {
+   prev[curr.continent][curr.title.toLowerCase()] = {
+         id: curr.id,
+         title: curr.title,
+         svgPath: curr.svgPath,
+         continent: curr.continent,
+         acceptedNames: curr.acceptedNames ?? [],
+         fill: COLOR_INDEX[curr.continent][Math.floor(Math.random() * 
+               COLOR_INDEX[curr.continent].length)]
+            ,
+      };
+   // push duplicates
    if (curr.acceptedNames) {
       for (const name of curr.acceptedNames) {
-
-         newMap[name.toLowerCase()] = {
-            ...curr,
-            title: name,
-         };
+         if (name === curr.title) {
+            continue;
+         }
+         prev[curr.continent][name.toLowerCase()] = {
+               id: curr.id,
+               title: name,
+               svgPath: curr.svgPath,
+               acceptedNames: curr.acceptedNames ?? [],
+               continent: curr.continent,
+               fill: COLOR_INDEX[curr.continent][Math.floor(Math.random() * 
+                     COLOR_INDEX[curr.continent].length)]
+                  ,
+            };
       }
    }
-   return newMap;
+   return prev;
 
-}, {});
+}, {
+   [Continent.NORTH_AMERICA]: {},
+   [Continent.SOUTH_AMERICA]: {},
+   [Continent.EUROPE]: {},
+   [Continent.ASIA]: {},
+   [Continent.AFRICA]: {},
+   [Continent.OCEANIA]: {},
+});
 
-// ALL NON CATEGORISED
-console.log(Object.values(countryHashMap).filter(c => c.continent === Continent.NOT_APPLICABLE));
-
+/**
+ * Final hash struct
+ * 
+ * {
+ *    [Continent]: {
+ *       "search-key-0": CountryInstanceParams,
+ *       "search-key-1": CountryInstanceParams,
+ *    }
+ *    ...
+ * }
+ */
 window.addEventListener("load", () => {
    document.querySelector("code#output").innerHTML = JSON.stringify(countryHashMap, null, 2);   
 });

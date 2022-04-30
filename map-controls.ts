@@ -6,7 +6,7 @@ const viewBox = {
     width: 800,
     height: 600,
  }
- const svg = ELEMENT_DICT.svg() as SVGElement;
+ const svg = ELEMENT_DICT.map() as SVGElement;
     // Fix difference between viewbox and svg size
     let ratio = viewBox.width / svg.getBoundingClientRect().width;
  
