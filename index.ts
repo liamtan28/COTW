@@ -168,6 +168,53 @@ class GameStateManager {
          this.gameState[country.continent].marker.clear(map);
          this.gameState[country.continent].marker.draw(map);
 
+         this.updateScoreboard(country);
+
+         console.log(`[GameStateManager] Correct answer ${country.title}`, { gameState: this.gameState });
+         return true;
+      }
+      return false;
+   }
+
+   public gameOver(): void {
+      console.log(`[GameStateManager] Game over`, { gameState: this.gameState });
+      for (const continent of Object.keys(this.gameState)) {
+         const continentData: Record<string, Country> = this.gameState[continent].countryMap;
+
+         for(const country of Object.values(continentData)) {
+            if (!country.found) {
+               this.updateScoreboard(country);
+               this.removeDuplicateCountries(country);
+            }
+         }      
+      }
+
+      // Remove all elements and replace in alphabetical order.
+
+      const entries = document.querySelectorAll('.scoreboard-entry');
+      const sortedEntries = Array.from(entries).sort((a, b) => a.textContent.localeCompare(b.textContent));
+      this.clearScoreboard();
+      for(const entry of sortedEntries) {
+         const querySelector = entry.getAttribute("data-continent")
+            .toLowerCase()
+            .replace(/. /g, '');
+
+         const scoreboardSection = ELEMENT_DICT.scoreboardSectionByContinent(querySelector);
+         scoreboardSection.appendChild(entry);
+       
+      }
+      console.log({sortedEntries});
+      
+   }
+
+   private removeDuplicateCountries(country: Country): void {
+      console.log(`[GameStateManager] Removing duplicates`, { duplicates: country.otherNames })
+      for (const name of country.otherNames) {
+         delete this.gameState[country.continent].countryMap[name.toLowerCase()];
+      }
+   }
+
+   private updateScoreboard(country: Country): void {
          // Update scoreboard
          const querySelector = country.continent
             .toLowerCase()
@@ -177,20 +224,15 @@ class GameStateManager {
       
          const node = document.createElement("p");
          node.innerHTML = country.title;
-         node.className = "scoreboard-entry";
+         node.className = country.found ? "scoreboard-entry" : "scoreboard-entry scoreboard-entry-missed";
+         node.setAttribute("data-continent", country.continent);
          scoreboardSection.appendChild(node);
-
-         console.log(`[GameStateManager] Correct answer ${country.title}`, { gameState: this.gameState });
-         return true;
-      }
-      return false;
    }
 
-   private removeDuplicateCountries(country: Country): void {
-      console.log(`[GameStateManager] Removing duplicates`, { duplicates: country.otherNames })
-      for (const name of country.otherNames) {
-         delete this.gameState[country.continent].countryMap[name.toLowerCase()];
-      }
+   private clearScoreboard(): void {
+      const scoreboardSections = document.querySelectorAll('section.scoreboard__continent-container');
+
+      scoreboardSections.forEach(section => section.innerHTML = null);
    }
 
 }
@@ -220,9 +262,17 @@ for (const ocean of mapData.oceans) {
    marker.draw(map);
 }
 
+const setFinishEventListener = (game: GameStateManager) => {
+   const finishButton = ELEMENT_DICT.gameOver() as HTMLElement;
+
+   finishButton.addEventListener("click", () => game.gameOver());
+}
+
+
 setInputEventListener(game);
 setViewBoxEventListeners();
 setZoomEventListeners();
+setFinishEventListener(game);
 
 
 // class Game 

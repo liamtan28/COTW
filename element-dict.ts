@@ -12,7 +12,7 @@ export const ELEMENT_DICT: Record<string, (any?) => HTMLElement | SVGElement> = 
     zoomOut: (): HTMLElement => document.querySelector<HTMLElement>("span.control#zoom-out"),
  
     help: (): HTMLElement => document.querySelector<HTMLElement>("span.control#help"),
-    finish: (): HTMLElement => document.querySelector<HTMLElement>("span.control#finish-game"),
+    gameOver: (): HTMLElement => document.querySelector<HTMLElement>("span.control#game-over"),
 
     scoreboard: (): HTMLElement => document.querySelector<HTMLElement>("div#scoreboard"),
     scoreboardContainer: (): HTMLElement => document.querySelector<HTMLElement>("div#scoreboard-container"),

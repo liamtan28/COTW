@@ -38,10 +38,7 @@
 			font-weight: 700;
 			color: white;
 		}
-		#map-zoom-container {
-			width: 1000px;
-			overflow: hidden;
-		}
+	
 		p#counter {
 			font-weight: 700;
 			margin: 0 0 0 1rem;
@@ -138,6 +135,24 @@
 			font-weight: 700;
 			font-size: 0.8rem;
 		}
+		section.scoreboard__continent-container p.scoreboard-entry:first-child{
+			border-top-left-radius: 10px;
+			border-top-right-radius: 10px;
+		}
+		section.scoreboard__continent-container p.scoreboard-entry:last-child{
+			border-bottom-left-radius: 10px;
+			border-bottom-right-radius: 10px;
+		}
+		section.scoreboard__continent-container p.scoreboard-entry-missed {
+			margin: 0;
+			padding: 0.5rem;
+			border-bottom: 1px solid #b12c44;
+			background: #fc5c65;
+			color: #b12c44;
+			text-transform: uppercase;
+			font-weight: 700;
+			font-size: 0.8rem;
+		}
 		text.continent-marker {
 		
 			font-size: 10px;
@@ -160,7 +175,6 @@
 			display: flex;
 			flex-direction: row-reverse;
 			height: calc(100% - 58px);
-		
 		}
 	</style>
 	<body>
@@ -184,7 +198,6 @@
 			<span class="control" id="zoom-out">
 
 				<?xml version="1.0" encoding="UTF-8"?>
-				<!-- Generator: Adobe Illustrator 25.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 				<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="24" height="24">
 				<g id="_01_align_center">
 					<path d="M511.89,481.79l-133.3-133.3c74.537-91.16,61.06-225.485-30.1-300.021s-225.485-61.06-300.021,30.1   s-61.06,225.485,30.1,300.021c78.521,64.202,191.401,64.202,269.921,0l133.3,133.3L511.89,481.79z M213.87,384.167   c-94.053,0-170.297-76.245-170.297-170.297S119.817,43.573,213.87,43.573s170.297,76.245,170.297,170.297   C384.062,307.879,307.879,384.062,213.87,384.167z"/>
@@ -203,7 +216,7 @@
 				</span>
 			<input placeholder="Enter a country" type="text" id="answer" />
 			<p id="counter">0/197</p>
-			<span class="control" id="finish-game" style="margin-left: 1rem">
+			<span class="control" id="game-over" style="margin-left: 1rem">
 				<svg xmlns="http://www.w3.org/2000/svg" id="Layer_1" data-name="Layer 1" viewBox="0 0 24 24" width="24" height="24"><path d="M13,2.051V1a1,1,0,0,0-2,0V2.051A10.98,10.98,0,0,0,3.681,20.176,3.024,3.024,0,0,0,2,23a1,1,0,0,0,2,0,1.2,1.2,0,0,1,1.11-1.229.932.932,0,0,0,.2-.062,10.924,10.924,0,0,0,13.39,0,1.033,1.033,0,0,0,.182.064A1.2,1.2,0,0,1,20,23a1,1,0,0,0,2,0,3.024,3.024,0,0,0-1.681-2.824A10.98,10.98,0,0,0,13,2.051ZM3,13a9,9,0,1,1,9,9A9.011,9.011,0,0,1,3,13Z"/><path d="M19.215,0a1,1,0,0,0,0,2A2.59,2.59,0,0,1,22,4.5a1,1,0,0,0,2,0A4.6,4.6,0,0,0,19.215,0Z"/><path d="M2,4.5A2.59,2.59,0,0,1,4.785,2a1,1,0,0,0,0-2A4.6,4.6,0,0,0,0,4.5a1,1,0,0,0,2,0Z"/><path d="M13,11.586V7a1,1,0,0,0-2,0v5a1,1,0,0,0,.293.707l3,3a1,1,0,0,0,1.414-1.414Z"/></svg>
 			</span>
 		</header>
@@ -221,12 +234,6 @@
 					id="map"
 					height="100%"
 				>
-
-					<!--OCEAN MARKERS-->
-					
-					<!--SCORE MARKERS-->
-
-					<!--COUNTRY PATHS-->
 					<g id="map-path-group"></g>
 				</svg>
 
