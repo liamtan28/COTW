@@ -107,20 +107,6 @@ export class OceanMarker {
     }
 }
 
-/**
- * 
-		text.score-marker {
-		
-			font-size: 10px;
-			font-family: 'Roboto', sans-serif;
-			fill: rgba(0,0,0,0.5);
-			
-		}
-		text.score-marker tspan {
-			font-size: 5px;
-			
- */
-
 export class ContinentMarker {
     private static FILL_COLOR = "rgba(0,0,0,0.5";
 

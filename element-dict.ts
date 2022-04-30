@@ -1,4 +1,4 @@
-export const ELEMENT_DICT: Record<string, (any?) => Element | SVGElement> = {
+export const ELEMENT_DICT: Record<string, (any?) => HTMLElement | SVGElement> = {
     map: (): SVGElement => document.querySelector("svg#map"),
     mapPathGroup: (): SVGElement => document.querySelector<SVGElement>("g#map-path-group"),
     // TODO I hate this dedup solution. Its really inefficient. This is a hashmap collision issue. 

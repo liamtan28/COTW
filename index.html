@@ -1,27 +1,26 @@
 <!DOCTYPE html>
 	<script src="./index.ts" type="module"></script>
+	<meta charset="UTF-8">
 	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Libre+Bodoni:ital@1&family=Roboto:wght@400;700&display=swap');
+		html, body{min-height:100%;}
+		body{height:100vh;}
 		body {
 			margin: 0;
 			padding: 0;
 			background: #fff;
-			width: 100%;
-			height: 100%;
-			display: flex;
-			flex-direction: column;
 			font-family: 'Roboto', sans-serif;
-			overflow: hidden;
 		}
 		header {
-			position: fixed;
 			width: 100%;
 			background: white;
-			height: 2rem;
+		
+			top:0;
 			padding: 10px;
 			display: flex;
 			align-items:center;
 			justify-content: center;
+			box-shadow: 2px 2px 5px rgb(0 0 0 / 30%);
 			
 		}
 		input {
@@ -40,12 +39,8 @@
 			color: white;
 		}
 		#map-zoom-container {
-			flex: 1;
+			width: 1000px;
 			overflow: hidden;
-		}
-		svg {
-			text-align: center;
-			
 		}
 		p#counter {
 			font-weight: 700;
@@ -54,37 +49,7 @@
 			border-radius: 10px;
 			padding: 6px;
 		}
-		div#history {
-			overflow-y: scroll;
-			width: 400px;
-			max-height: 106.5px;
-			background: #fff;
-			border-top-left-radius: 10px;
-			border-top-right-radius: 10px;
-			flex-direction: column;
-			display: flex;
-			position: fixed;
-			bottom: 0;
-			left: 50%;
-			transform: translateX(-50%);
-			opacity: 0.7;
-		}
-
-		p.country-entry {		
-			height: 36.5px;
-			margin: 0;
-			padding: 0 1rem 0 0;
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-
-			
-		}
-		p.country-entry strong {
-			padding: 0.5rem;
-			font-size: 12px;
 	
-		}
 		text.ocean-marker {
 		
 			font-style: italic;
@@ -104,15 +69,6 @@
 		.control:hover {
 			background: lightgrey;
 		}
-
-		span.control#help {
-
-		}
-
-		span.control#help.active {
-			
-		}
-
 		div#country-panel {
 			position: fixed;
 			bottom: 1rem;
@@ -136,33 +92,52 @@
 		}
 		div#scoreboard {
 
-			background: #fff;
 			flex: 1;
 	
 			display: flex;
 			flex-direction: column;
 			
-			height: 600px;
-			border-bottom: 2px solid lightgrey;
-		
+			height: 100%;
 			box-sizing: border-box;
-			margin: 0 0.5rem;
+			background: rgba(0,0,0,0.05);
+    		margin: 0;
+			overflow: scroll;
+			padding: 10px;
+			box-shadow: 2px 2px 5px rgb(0 0 0 / 30%);
 		}
 	
 		p.scoreboard__continent-header {
 			font-weight: 400;
 			font-size: 1.2rem;
-			margin: 0 0 1rem 0;
 			padding: 0.5rem;
 			color: #fff;
 			text-align: center;
 			border-radius: 10px;
+			margin: 0;
+			box-shadow: 2px 2px 5px rgb(0 0 0 / 30%);
 		}
 		p.scoreboard__continent-header strong {
 			font-size: 0.8rem;
 			padding: 0 0.25rem;
 		}
+		section.scoreboard__continent-container {
 
+			padding: 0;
+			box-shadow: 2px 2px 5px rgb(0 0 0 / 30%);
+			border-radius: 10px;
+			text-align: center;
+			margin: 0.5rem;
+			background: #fff;
+		}
+
+		section.scoreboard__continent-container p.scoreboard-entry {
+			margin: 0;
+			padding: 0.5rem;
+			border-bottom: 1px solid lightgrey;
+			text-transform: uppercase;
+			font-weight: 700;
+			font-size: 0.8rem;
+		}
 		text.continent-marker {
 		
 			font-size: 10px;
@@ -178,12 +153,13 @@
 		svg#map {
 			shape-rendering: optimizeSpeed;
 			background: #8AB4F8;
-			width: 800px;
+			width: 1000px;
+			height:100%;
 		}
 		div#game-area {
 			display: flex;
-			flex-direction: row;
-			margin-top: 52px;
+			flex-direction: row-reverse;
+			height: calc(100% - 58px);
 		
 		}
 	</style>
@@ -240,10 +216,10 @@
 			<div id="map-zoom-container">
 				<svg
 					xmlns:svg="http://www.w3.org/2000/svg"
-					viewBox="0 0 800 600"
-					width="800px" 
+					viewBox="0 0 1000 600"
+					width="1000px" 
 					id="map"
-					height="600px"
+					height="100%"
 				>
 
 					<!--OCEAN MARKERS-->
@@ -253,9 +229,6 @@
 					<!--COUNTRY PATHS-->
 					<g id="map-path-group"></g>
 				</svg>
-				<div id="history">
-					<p class="country-entry"><strong>...</strong></p>
-				</div>
 
 				<div id="country-panel">
 					<strong>...</strong>
@@ -264,17 +237,19 @@
 
 			<div id="scoreboard">
 				<p class="scoreboard__continent-header" style="background: #20bf6b;">Europe<strong>(0/45)</strong></p>
-				<section class="scoreboard__continent-container" id="europe"></section>
+				<section class="scoreboard__continent-container" id="europe">
+
+				</section>
 				<p class="scoreboard__continent-header" style="background: #8854d0">Oceania</p>
 				<section class="scoreboard__continent-container" id="oceania"></section>
 				<p class="scoreboard__continent-header" style="background: #fa8231">North America</p>
-				<section class="scoreboard__continent-container" id="northamerica"></section>
+				<section class="scoreboard__continent-container" id="namerica"></section>
 				<p class="scoreboard__continent-header" style="background: #f7b731">South America</p>
-				<section class="scoreboard__continent-container" id="southamerica"></section>
+				<section class="scoreboard__continent-container" id="samerica"></section>
 				<p class="scoreboard__continent-header" style="background: #eb3b5a">Asia</p>
 				<section class="scoreboard__continent-container" id="asia"></section>
 				<p class="scoreboard__continent-header" style="background: #3867d6">Africa</p>
-				<section class="scoreboard__continent-container" id="misc"></section>
+				<section class="scoreboard__continent-container" id="africa"></section>
 			</div>
 
 		</div>

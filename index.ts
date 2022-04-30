@@ -47,6 +47,7 @@ type GameState = Record<Continent, {
 >;
 
 class GameStateManager {
+
    private gameState: GameState = {
       [Continent.NORTH_AMERICA]: {
          numFoundCountries: 0,
@@ -91,7 +92,6 @@ class GameStateManager {
          countryMap: {},
       },
    }
-
 
    public constructor(mapData: MapData) {
       console.log(`[GameStateManager] Creating instance`, { mapData });
@@ -167,6 +167,18 @@ class GameStateManager {
          this.gameState[country.continent].marker.incrementScore();
          this.gameState[country.continent].marker.clear(map);
          this.gameState[country.continent].marker.draw(map);
+
+         // Update scoreboard
+         const querySelector = country.continent
+            .toLowerCase()
+            .replace(/. /g, '')
+         ;
+         const scoreboardSection = ELEMENT_DICT.scoreboardSectionByContinent(querySelector);
+      
+         const node = document.createElement("p");
+         node.innerHTML = country.title;
+         node.className = "scoreboard-entry";
+         scoreboardSection.appendChild(node);
 
          console.log(`[GameStateManager] Correct answer ${country.title}`, { gameState: this.gameState });
          return true;

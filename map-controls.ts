@@ -3,7 +3,7 @@ import { ELEMENT_DICT } from "./element-dict";
 const viewBox = {
     x: 0,
     y: 0,
-    width: 800,
+    width: 1000,
     height: 600,
  }
  const svg = ELEMENT_DICT.map() as SVGElement;
