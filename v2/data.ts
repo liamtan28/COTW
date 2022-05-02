@@ -119,13 +119,18 @@ interface ReducedGeoJsonFeature {
         region_wb: string, // Latin America & Caribbean,
     },
     geometry: {
-        type: string, // Polygon, Multi-Polygon
+        type: string, // Polygon, MultiPolygon
         coordinates: number[][][],
     },
 }
 interface CotwGameProps {
-    isFound: boolean;
+    found: boolean;
+    reveal: boolean;
     baseColor: string;
+    position: {
+        lat: number;
+        lng: number;
+    }
 }
 
 export type CotwCountryData = ReducedGeoJsonFeature & CotwGameProps;
@@ -138,11 +143,12 @@ enum Continent {
     AFRICA = "Africa",
     OCEANIA = "Oceania",
  }
+
 const COLOR_INDEX: Record<Continent, string[]> = {
-    [Continent.ASIA]: ["rgba(205, 132, 241,0.4)", "rgba(197, 108, 240,0.4)"],
+    [Continent.ASIA]: ["rgba(255, 250, 101,0.4)", "rgba(255, 242, 0,0.4)"],
     [Continent.NORTH_AMERICA]: ["rgba(50, 255, 126,0.4)", "rgba(58, 227, 116,0.4)"],
     [Continent.SOUTH_AMERICA]: [ "rgba(255, 175, 64,0.4)", "rgba(255, 159, 26,0.4)"],
-    [Continent.EUROPE]: ["rgba(255, 77, 77,0.4)", "rgba(255, 56, 56,0.4)"],
+    [Continent.EUROPE]: ["rgba(125, 95, 255,0.4)", "rgba(113, 88, 226,0.4)"],
     [Continent.AFRICA]: ["rgba(24, 220, 255,0.4)", "rgba(23, 192, 235,0.4)"],
     [Continent.OCEANIA]: ["rgba(126, 255, 245,0.4)", "rgba(103, 230, 220,0.4)"],
  };
@@ -166,7 +172,12 @@ export const convertGeoJsonToCountryData = (input: GeoJson): CotwCountryData[] =
                 region_wb: country.properties.region_wb,
             },
             geometry: country.geometry,
-            isFound: false,
+            found: false,
+            reveal: false,
+            position: {
+                lat: country.geometry.type === "Polygon" ? country.geometry.coordinates[0][0][0] as unknown as number : country.geometry.coordinates[0][0][0][0] as number,
+                lng: country.geometry.type === "Polygon" ? country.geometry.coordinates[0][0][1] as unknown as number : country.geometry.coordinates[0][0][0][1] as number,
+            },
             baseColor: COLOR_INDEX[country.properties.continent][Math.floor(Math.random() * 2)],
         }))
 );
