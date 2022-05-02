@@ -230,6 +230,10 @@ class GameStateManager {
          node.className = country.found ? "scoreboard-entry" : "scoreboard-entry scoreboard-entry-missed";
          node.setAttribute("data-continent", country.continent);
          scoreboardSection.appendChild(node);
+
+         // !Todo this sucks. replace with element
+         scoreboardSection.previousElementSibling.lastChild.textContent = 
+            `(${this.gameState[country.continent].numFoundCountries}/${this.gameState[country.continent].totalNumCountries})`; 
    }
 
    private clearScoreboard(): void {
@@ -281,136 +285,6 @@ setInputEventListener(game);
 setViewBoxEventListeners();
 setZoomEventListeners();
 setFinishEventListener(game);
-
-
-// class Game 
-{
-
-//    private static SVG_NAMESPACE = "http://www.w3.org/2000/svg";
-
-//    private viewPort: {
-//       x: number;
-//       y: number;
-//       width: number;
-//       height: number;
-//    }
-
-//    private scoreboard: Record<Continent, string[]> = {
-//       [Continent.ASIA]: [],
-//       [Continent.NORTH_AMERICA]: [],
-//       [Continent.SOUTH_AMERICA]: [],
-//       [Continent.EUROPE]: [],
-//       [Continent.AFRICA]: [],
-//       [Continent.OCEANIA]: [],
-//       [Continent.NOT_APPLICABLE]: [],
-//    }
-//    private static targettotalNumCountries: Record<Continent, number> = {
-//       [Continent.ASIA]: 49,
-//       [Continent.NORTH_AMERICA]: 23,
-//       [Continent.SOUTH_AMERICA]: 12,
-//       [Continent.EUROPE]: 45,
-//       [Continent.AFRICA]: 54,
-//       [Continent.OCEANIA]: 14,
-//       [Continent.NOT_APPLICABLE]: 0,
-//    }
-//    private completeCountries: number = 0;
-
-//    private static COLOR_INDEX: Record<Continent, string[]> = {
-//       [Continent.ASIA]: ["#fc5c65", "#eb3b5a"],
-//       [Continent.NORTH_AMERICA]: ["#fd9644", "#fa8231"],
-//       [Continent.SOUTH_AMERICA]: [ "#fed330", "#f7b731"],
-//       [Continent.EUROPE]: ["#26de81", "#20bf6b"],
-//       [Continent.AFRICA]: ["#4b7bec", "#3867d6"],
-//       [Continent.OCEANIA]: ["#a55eea", "#8854d0"],
-//       [Continent.NOT_APPLICABLE]: ["#778ca3", "#4b6584"],
-//    };
-
-//    public constructor(width: number, height: number, originX: number, originY: number) {
-//       this.viewPort = {
-//          width,
-//          height,
-//          x: originX,
-//          y: originY,
-//       };
-//    }
-
-//    /********************
-//     * GAME UPDATES
-//     */
-
-//    public updateScoreboard(): void {
-//       // TODO dynamically add sections to html with id of enum. That 
-//       // way only one loop required.
-
-//       const asiaSection = ELEMENT_DICT.scoreboardSectionByContinent("asia") as HTMLElement;
-//       const northAmericaSection = ELEMENT_DICT.scoreboardSectionByContinent("northamerica") as HTMLElement;
-//       const southAmericaSection = ELEMENT_DICT.scoreboardSectionByContinent("southamerica") as HTMLElement;
-//       const europeSection = ELEMENT_DICT.scoreboardSectionByContinent("europe") as HTMLElement;
-//       const africaSection = ELEMENT_DICT.scoreboardSectionByContinent("africa") as HTMLElement;
-//       const oceaniaSection = ELEMENT_DICT.scoreboardSectionByContinent("oceania") as HTMLElement;
-//       const miscSection = ELEMENT_DICT.scoreboardSectionByContinent("misc") as HTMLElement;
-
-//       asiaSection.innerHTML = "";
-//       for (const country of this.scoreboard[Continent.ASIA]) {
-//          const entry = document.createElement("p");
-//          entry.innerHTML = country;
-//          entry.className = "scoreboard__continent-entry";
-//          asiaSection.appendChild(entry);  
-//       }
-//    }
-
-//    private colorCountry(country: Country): void {
-//       const palette = Game.COLOR_INDEX[country.continent];
-//       // Select either the 0th or nth index of the palette at random.
-//       const color = palette[Math.floor(Math.random() * palette.length)];
-//       (<NodeListOf<SVGPathElement>>ELEMENT_DICT.pathsById(country.id)).forEach(e => e.style.fill = color);
-//    }
-
-//    private markCountryAsComplete(country: Country): void {
-//       (<NodeListOf<SVGPathElement>>ELEMENT_DICT.pathsById(country.id)).forEach(e => e.setAttribute("data-found", "true"));
-//       this.scoreboard[country.continent].push(country.title);
-//    }
-
-//    private addCountryToHistory(country: Country): void {
-//       const historyElement = ELEMENT_DICT.history() as Element;
-//       const palette = Game.COLOR_INDEX[country.continent];
-//       const color = palette[Math.floor(Math.random() * palette.length)];
-   
-//       if (this.completeCountries === 1) {
-//          historyElement.innerHTML = "";
-//       }
-//       const countryEntryElement = document.createElement("p");
-//       countryEntryElement.className = "country-entry";
-//       countryEntryElement.style.background = color;
-   
-//       countryEntryElement.innerHTML = `<strong>${this.completeCountries}</strong> ${country.title}`;
-   
-//       historyElement.prepend(countryEntryElement);
-//       historyElement.scrollTop = 0;
-   
-//    }
-
-//    private deleteCountryAndDuplicates(country: Country): void {
-//       delete countryHashMap[country.title.toLowerCase()];
-//       if (country.acceptedNames) {
-//          for (const name of country.acceptedNames) {
-//             if (countryHashMap.hasOwnProperty(name.toLowerCase())) {
-//                delete countryHashMap[name.toLowerCase()];
-//             }
-//          }
-//       }
-//    }
-
-//    private updateCounters(country: Country): void {
-//       (ELEMENT_DICT.counter() as Element).innerHTML = `${this.completeCountries}/197`; 
-//       // TODO autogenerate these markers to have the continent enum as part of it
-//       (ELEMENT_DICT.countryCounter(country.continent) as SVGElement).innerHTML = `(${this.scoreboard[country.continent].length}/${Game.targettotalNumCountries[country.continent]})`;
-//    } 
-
-
-
-
-
 
 // const setMouseOverEventListener = (game: Game) => {
 //    const countryPanel = ELEMENT_DICT.countryPanel() as HTMLElement;
