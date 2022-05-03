@@ -1,16 +1,16 @@
 import Globe, { ConfigOptions, GlobeInstance } from "globe.gl";
-import * as d3 from "d3";
 import { CotwCountryData, convertGeoJsonToCountryData, GeoJson } from "./data";
-import GEO_JSON from "./datasets/all.json";
-import { Country } from "../game-object";
+import GEO_JSON from "./datasets/countries.json";
 
 interface GameState {
   countries: CotwCountryData[],
   countriesComplete: number,
 
   timeRemaining: number,
+
   gameStarted: boolean,
   gameOver: boolean,
+  displayingHelp: boolean,
 }
 
 class GlobeManager {
@@ -22,8 +22,8 @@ class GlobeManager {
   
   private static POLY_ALTITUDE = 0.01;
   private static POLY_BASE_COLOR = 'rgba(0,0,0,0.3)';
-  private static POLY_SIDE_COLOR = 'rgba(0,0,0,0.0)';
-  private static POLY_STROKE_COLOR = 'rgba(0,0,0,1)';
+  private static POLY_SIDE_COLOR = 'rgba(200,200,200,0.5)';
+  private static POLY_STROKE_COLOR = 'rgba(200,200,200,0.5)';
 
   private static POLY_HOVER_ALTITUDE = 0.04;
   private static POLY_HOVER_COLOR = 'rgba(0,0,0,0.5)';
@@ -60,6 +60,7 @@ class GlobeManager {
       .polygonLabel((country: any) => country.reveal ? country.properties.name : "???")
 
       (this.root);
+
   }
 
   public enableHoverPolys(): void {
@@ -93,8 +94,10 @@ class GameStateManager {
       countries: countryData,
       countriesComplete: 0,
       timeRemaining: timeLimit,
+
       gameStarted: false,
       gameOver: false,
+      displayingHelp: true,
     }
 
 
@@ -139,6 +142,11 @@ class GameStateManager {
     this.revealAll();
   }
 
+  public toggleHelp(): void {
+    this.gameState.displayingHelp = !this.gameState.displayingHelp;
+    this.updateHowToPlayDOM();
+  }
+
   public revealAll(): void {
     for (const country of this.gameState.countries) {
         country.reveal = true;
@@ -176,6 +184,16 @@ class GameStateManager {
  private updateCounterDOM(): void {
    const counter = document.querySelector("p#counter");
    counter.innerHTML = `${this.gameState.countriesComplete}/197`;
+ }
+
+ private updateHowToPlayDOM(): void {
+   const blur = document.querySelector<HTMLElement>("div#how-to-play-blur");
+   const window = document.querySelector<HTMLElement>("div#how-to-play");
+
+   const value = this.gameState.displayingHelp ? "block" : "none";
+  
+   blur.style.display = value;
+   window.style.display = value;
  }
 
  private updateTimerDOM(): void {
@@ -226,6 +244,14 @@ const setTimerEventListener = () => {
   });
 }
 
+const setHelpEventListeners = () => {
+  const helpButton = document.querySelector<HTMLElement>("span.control#help");
+  const dismissButton = document.querySelector<HTMLElement>("div#how-to-play button");
+
+  helpButton.addEventListener("click", () => manager.toggleHelp());
+  dismissButton.addEventListener("click", () => manager.toggleHelp());
+}
+
 setInputEventListener();
 setTimerEventListener();
-//manager.revealAll();
+setHelpEventListeners();

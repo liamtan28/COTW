@@ -1,4 +1,4 @@
-import COUNTRIES_JSON from "./datasets/all.json";
+import COUNTRIES_JSON from "./datasets/countries.json";
 
 export interface GeoJson {
     type: "FeatureCollection",
@@ -106,17 +106,19 @@ interface GeoJsonFeature {
 interface ReducedGeoJsonFeature {
     properties: {
 
-        iso_a2: string, // ID
+        iso_a2?: string, // ID
         name: string,
-        name_long: string,
-        abbrev: string,
-        formal_en: string, // Belize,
-        formal_fr: string,
+        name_long?: string,
+        abbrev?: string,
+        formal_en?: string, // Belize,
+        formal_fr?: string,
 
         continent: string, // North America
-        region: string, // Americas
-        subregion: string, // Central America
-        region_wb: string, // Latin America & Caribbean,
+        type: string,
+
+        region?: string, // Americas
+        subregion?: string, // Central America
+        region_wb?: string, // Latin America & Caribbean,
     },
     geometry: {
         type: string, // Polygon, MultiPolygon
@@ -166,6 +168,7 @@ export const convertGeoJsonToCountryData = (input: GeoJson): CotwCountryData[] =
                 abbrev: country.properties.abbrev,
                 formal_en: country.properties.formal_en,
                 formal_fr: country.properties.formal_fr,
+                type: country.properties.type,
                 continent: country.properties.continent,
                 region: country.properties.region,
                 subregion: country.properties.subregion,
