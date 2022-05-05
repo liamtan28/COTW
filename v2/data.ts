@@ -1,129 +1,150 @@
-import COUNTRIES_JSON from "./datasets/countries.json";
-
 export interface GeoJson {
     type: "FeatureCollection",
     features: GeoJsonFeature[],
 }
-interface GeoJsonFeature {
-    type: "Feature",
+export type GeoJsonFeature = {
+    type: string;
+    proximity: number;
     properties: {
-      scalerank: number,
-      featurecla: string,
-      labelrank: number,
-      sovereignt: string, // Belize
-      sov_a3: string, // ID (BLZ)
-      adm0_dif: number,
-      level: number,
-      type: string, // Sovereign country,
-      admin: string, // Belize
-      adm0_a3: string, // ID
-      geou_dif: number,
-      geounit: string, // Belize,
-      gu_a3: string, // ID
-      su_dif: number,
-      subunit: string, // Belize,
-      su_a3: string, // ID,
-      brk_diff: number,
+      scalerank: number;
+      featurecla: string;
+      LABELRANK: number;
+      SOVEREIGNT: string;
+      SOV_A3: string; 
+      ADM0_DIF: number;
+      LEVEL: number;
+      TYPE: string;
+      ADMIN: string;
+      ADM0_A3: string;
+      GEOU_DIF: number;
+      GEOUNIT: string;
+      GU_A3: string;
+      SU_DIF: number;
+      SUBUNIT: string;
+      SU_A3: string;
+      BRK_DIFF: number;
+      NAME: string;
+      NAME_LONG: string;
+      BRK_A3: string;
+      BRK_NAME: string;
+      BRK_GROUP: null;
+      ABBREV: string;
+      POSTAL: string;
+      FORMAL_EN: string | null;
+      FORMAL_FR: string | null;
+      NAME_CIAWF: string | null;
+      NOTE_ADM0: string | null;
+      NOTE_BRK: string | null;
+      NAME_SORT: string;
+      NAME_ALT: string | null;
+      MAPCOLOR7: number;
+      MAPCOLOR8: number;
+      MAPCOLOR9: number;
+      MAPCOLOR13: number;
+      POP_EST: number;
+      POP_RANK: number;
+      GDP_MD_EST: number;
+      POP_YEAR: number;
+      LASTCENSUS: number;
+      GDP_YEAR: number;
+      ECONOMY: string;
+      INCOME_GRP: string;
+      WIKIPEDIA: number;
+      FIPS_10_: string;
+      ISO_A2: string;
+      ISO_A2_EH: string;
+      FLAG: string;
+      ISO_A3: string;
+      ISO_A3_EH: string;
+      ISO_N3: string;
+      UN_A3: string;
+      WB_A2: string;
+      WB_A3: string;
+      WOE_ID: number;
+      WOE_ID_EH: number;
+      WOE_NOTE: string;
+      ADM0_A3_IS: string;
+      ADM0_A3_US: string;
+      ADM0_A3_UN: number;
+      ADM0_A3_WB: number;
+      CONTINENT: string;
+      REGION_UN: string;
+      SUBREGION: string;
+      REGION_WB: string;
+      NAME_LEN: number;
+      LONG_LEN: number;
+      ABBREV_LEN: number;
+      TINY: number;
+      HOMEPART: number;
+      MIN_ZOOM: number;
+      MIN_LABEL: number;
+      MAX_LABEL: number;
+      NAME_AR: string;
+      NAME_BN: string;
+      NAME_DE: string;
+      NAME_EN: string;
+      NAME_ES: string;
+      NAME_FA: string;
+      NAME_FR: string;
+      NAME_EL: string;
+      NAME_HE: string;
+      NAME_HI: string;
+      NAME_HU: string;
+      NAME_ID: string;
+      NAME_IT: string;
+      NAME_JA: string;
+      NAME_KO: string;
+      NAME_NL: string;
+      NAME_PL: string;
+      NAME_PT: string;
+      NAME_RU: string;
+      NAME_SV: string;
+      NAME_TR: string;
+      NAME_UK: string;
+      NAME_UR: string;
+      NAME_VI: string;
+      NAME_ZH: string;
+      NAME_ZHT: string;
+    };
+    bbox: number[];
+    geometry:
+      | {
+          TYPE: "Polygon";
+          coordinates: number[][][];
+        }
+      | {
+          TYPE: "MultiPolygon";
+          coordinates: number[][][][];
+        };
+  };
   
-  
-      // ! DATA FIELDS
-      name: string, // NAME Belize,
-      name_long: string, // NAME_LONG Belize,
-  
-  
-      brk_a3: string, // ID,
-      brk_name: string, // Belize,
-      brk_group: any, // null,
-  
-  
-      // ! DATA FIELD
-      abbrev: string, // Belize, Look for DRC, UK, USA,
-      // ! DATA FIELD
-      postal: string, // SECOND ID (BZ)
-      // ! DATA FIELDS
-      formal_en: string, // Belize,
-      formal_fr: string, // null here but check for Cote D'Ivore or Cape Verde
-  
-  
-      note_adm0: any, // null 
-      note_brk: any, // null,
-      name_sort: string // Belize,
-      name_alt: string, // null but could be interesting
-      mapcolor7: number,
-      mapcolor8: number,
-      mapcolor9: number,
-      mapcolor13: number,
-  
-  
-      // ! IGNORE FOR NOW BUT COULD BE USEFUL
-      pop_est: number, // population estimate
-      gdp_md_est: number, // median gdp estimate
-      pop_year: number, // -99, default value?
-      lastcensus: number, // 2010
-      gdp_year: number, // -99, default value?
-      economy: string, // 6. Developing region,
-      income_grp: string, // 4. Lower middle income
-      wikipedia: number, // -99, default value?
-  
-  
-      fips_10: any, // null
-      iso_a2: string, // SHORT ID (BZ)
-      iso_a3: string, // ID (BLZ)
-      iso_n3: string, // 084, ID?
-      un_a3: string, // 084, ID?
-      wb_a2: string, // SHORT ID (BZ)
-      wb_a3: string, // ID (BLZ)
-      woe_id: number, // -99
-      adm0_a3_is: string, // ID (BLZ)
-      adm0_a3_us: string,  // ID (BLZ)
-      adm0_a3_un: number, // -99,
-      adm0_a3_wb: number, // -99,
-  
-  
-      // ! DATA FIELDS
-      continent: string, // North America
-      region: string, // Americas
-      subregion: string, // Central America
-      region_wb: string, // Latin America & Caribbean,
-  
-      name_len: number, // length of name
-      long_len: number,
-      abbrev_len: number,
-      tiny: number,
-  
-      homepart: number,
-      filename: string,
-    
-  
-  
-    },
-    geometry: {
-      type: string, // Polygon, Multi-Polygon
-      coordinates: number[][][],
-    }
-}
   
 interface ReducedGeoJsonFeature {
     properties: {
+        ISO_A2?: string, // ID
+        NAME: string,
+        NAME_LONG?: string,
+        ABBREV?: string,
+        FORMAL_EN?: string, // Belize,
+        FORMAL_FR?: string,
 
-        iso_a2?: string, // ID
-        name: string,
-        name_long?: string,
-        abbrev?: string,
-        formal_en?: string, // Belize,
-        formal_fr?: string,
+        CONTINENT: string, // North America
+        TYPE: string,
 
-        continent: string, // North America
-        type: string,
-
-        region?: string, // Americas
-        subregion?: string, // Central America
-        region_wb?: string, // Latin America & Caribbean,
+        REGION_UN?: string, // Americas
+        SUBREGION?: string, // Central America
+        REGION_WB?: string, // Latin America & Caribbean,
     },
-    geometry: {
-        type: string, // Polygon, MultiPolygon
-        coordinates: number[][][],
-    },
+    bbox: number[];
+    geometry:
+      | {
+          TYPE: "Polygon";
+          coordinates: number[][][];
+        }
+      | {
+          TYPE: "MultiPolygon";
+          coordinates: number[][][][];
+    };
 }
 interface CotwGameProps {
     found: boolean;
@@ -157,30 +178,28 @@ const COLOR_INDEX: Record<Continent, string[]> = {
 
 export const convertGeoJsonToCountryData = (input: GeoJson): CotwCountryData[] => (
     input.features
-        .filter((country: GeoJsonFeature): boolean => 
-            country.properties.type !== "Dependency"
-        )
         .map((country: GeoJsonFeature): CotwCountryData => ({
             properties: {
-                iso_a2: country.properties.iso_a2,
-                name: country.properties.name,
-                name_long: country.properties.name_long,
-                abbrev: country.properties.abbrev,
-                formal_en: country.properties.formal_en,
-                formal_fr: country.properties.formal_fr,
-                type: country.properties.type,
-                continent: country.properties.continent,
-                region: country.properties.region,
-                subregion: country.properties.subregion,
-                region_wb: country.properties.region_wb,
+                ISO_A2: country.properties.ISO_A2,
+                NAME: country.properties.NAME,
+                NAME_LONG: country.properties.NAME_LONG,
+                ABBREV: country.properties.ABBREV,
+                FORMAL_EN: country.properties.FORMAL_EN,
+                FORMAL_FR: country.properties.FORMAL_FR,
+                TYPE: country.properties.TYPE,
+                CONTINENT: country.properties.CONTINENT,
+                REGION_UN: country.properties.REGION_UN,
+                SUBREGION: country.properties.SUBREGION,
+                REGION_WB: country.properties.REGION_WB,
             },
             geometry: country.geometry,
+            bbox: country.bbox,
             found: false,
             reveal: false,
             position: {
-                lat: country.geometry.type === "Polygon" ? country.geometry.coordinates[0][0][0] as unknown as number : country.geometry.coordinates[0][0][0][0] as number,
-                lng: country.geometry.type === "Polygon" ? country.geometry.coordinates[0][0][1] as unknown as number : country.geometry.coordinates[0][0][0][1] as number,
+                lat: 0,//country.geometry.TYPE === "Polygon" ? country.geometry.coordinates[0][0][0] as unknown as number : country.geometry.coordinates[0][0][0][0] as number,
+                lng: 0,//country.geometry.TYPE === "Polygon" ? country.geometry.coordinates[0][0][1] as unknown as number : country.geometry.coordinates[0][0][0][1] as number,
             },
-            baseColor: COLOR_INDEX[country.properties.continent][Math.floor(Math.random() * 2)],
+            baseColor: COLOR_INDEX[country.properties.CONTINENT][Math.floor(Math.random() * 2)],
         }))
 );

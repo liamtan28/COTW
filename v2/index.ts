@@ -1,6 +1,8 @@
 import Globe, { ConfigOptions, GlobeInstance } from "globe.gl";
 import { CotwCountryData, convertGeoJsonToCountryData, GeoJson } from "./data";
 import GEO_JSON from "./datasets/countries.json";
+import ALTERNATIVES from "./datasets/alternatives.json";
+const deploy = false;
 
 interface GameState {
   countries: CotwCountryData[],
@@ -18,7 +20,7 @@ class GlobeManager {
   private root: HTMLElement;
   private instance: GlobeInstance;
   
-  private static GLOBE_IMG_MAP_URL = '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
+  private static GLOBE_IMG_MAP_URL = deploy ? './img/earth-blue-marble.jpg' : '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
   
   private static POLY_ALTITUDE = 0.01;
   private static POLY_BASE_COLOR = 'rgba(0,0,0,0.3)';
@@ -76,9 +78,17 @@ class GlobeManager {
     this.instance.polygonsData(countryData);
   }
 
-  public moveTo(position: { lat: number, lng: number }): void {
-    const { lat, lng } = position;
-    this.instance.pointOfView({ lat: lng, lng: lat });
+  public moveTo(country: CotwCountryData, ms: number = 250): void {
+    const centre = GlobeManager.findCentre(country);
+    this.instance.pointOfView(centre, ms);
+  }
+
+  private static findCentre(country: CotwCountryData) {
+      const { bbox } = country;
+      const [lng1, lat1, lng2, lat2] = bbox;
+      const latitude = (lat1 + lat2) / 2;
+      const longitude = (lng1 + lng2) / 2;
+      return { lat: latitude, lng: longitude };
   }
 
 }
@@ -123,6 +133,8 @@ class GameStateManager {
 
   public startGame(): void {
     this.gameState.gameStarted = true;
+    this.updateTimerDOM();
+    
     this.gameTimerId = window.setInterval(() => {
 
       this.gameState.timeRemaining -= 1000;
@@ -155,32 +167,53 @@ class GameStateManager {
   }
 
   public checkAnswerAndUpdate(searchKey: string): boolean {
+    const _found = (country: CotwCountryData): boolean => {
+      if (country.found) {
+        return false;
+      }
+      
+      country.found = true;
+      country.reveal = true;
+      this.globeManager.update(this.gameState.countries);
+      this.globeManager.moveTo(country);
+      console.log(`[GameStateManager] Correct answer ${country.properties.NAME}`, { gameState: this.gameState });
+      
+      this.gameState.countriesComplete++;
+      this.updateCounterDOM();
+
+      return true;
+    }
+
+    if (!this.gameStarted || this.gameState.gameOver) {
+      return false;
+    }
+
     console.log(`[GameStateManager] Checking search key ${searchKey}`, { gameState: this.gameState });
+    const isAlternativeName = ALTERNATIVES.hasOwnProperty(searchKey.toLowerCase());
 
-    // ! Consider hashmap as this is computationally expensive (172 string matches per key change)
+    // If the user input matches an alternative name
+    if (isAlternativeName) {
+      const realName = ALTERNATIVES[searchKey.toLowerCase()];
+      const country = this.gameState.countries.find((country: CotwCountryData): boolean => {
+        const nameLower = country.properties.NAME.toLowerCase();
+        return realName === nameLower;
+      });
+
+      return _found(country);
+    }
+
+    // If the user input doesn't
     for (const country of this.gameState.countries) {
-  
-      if (country.properties.name.toLowerCase() === searchKey.toLowerCase()) {
-
-        if (country.found) {
-          return false;
-        }
-        
-        country.found = true;
-        country.reveal = true;
-        this.globeManager.update(this.gameState.countries);
-        this.globeManager.moveTo(country.position);
-        console.log(`[GameStateManager] Correct answer ${country.properties.name}`, { gameState: this.gameState });
-        
-        this.gameState.countriesComplete++;
-        this.updateCounterDOM();
-
-        return true;
+      const nameLower = country.properties.NAME.toLowerCase();
+      const keyLower = searchKey.toLowerCase();
+      if (nameLower === keyLower) {
+        return _found(country);
       }
       
     }
     return false;
  }
+
  private updateCounterDOM(): void {
    const counter = document.querySelector("p#counter");
    counter.innerHTML = `${this.gameState.countriesComplete}/197`;
@@ -197,10 +230,19 @@ class GameStateManager {
  }
 
  private updateTimerDOM(): void {
-  const timer = document.querySelector("strong#time-remaining");
+  const control = document.querySelector<HTMLElement>("span.control#game-over");
+  const timer = document.querySelector<HTMLElement>("strong#time-remaining");
 
+  // Update color
+  const fill = this.gameState.gameStarted ? "rgba(255, 56, 56, 0.8)" : "#000";
+ 
+  control.style.color = fill;
+  control.style.fill = fill;
+
+  // Update time remaining in minutes
   let minutes = String(Math.floor(this.gameState.timeRemaining / 1000 / 60));
   let seconds = String(Math.round((parseInt(minutes, 10) - this.gameState.timeRemaining / 1000 / 60) * 60) * -1);
+
   if (minutes.length === 1) {
     minutes = "0" + minutes;
   }
@@ -214,8 +256,8 @@ class GameStateManager {
 
 /** Init Game State Manager */
 
-const processedCountries: CotwCountryData[] = convertGeoJsonToCountryData(GEO_JSON as GeoJson);
-const manager = new GameStateManager(processedCountries, 5000);
+const processedCountries: CotwCountryData[] = convertGeoJsonToCountryData(GEO_JSON as unknown as GeoJson);
+const manager = new GameStateManager(processedCountries);
 manager.init();
 
 /**
