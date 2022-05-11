@@ -3326,7 +3326,7 @@
           "GEOU_DIF": 0,
           "GEOUNIT": "South Sudan",
           "SUBUNIT": "South Sudan",
-          "NAME": "S. Sudan",
+          "NAME": "South Sudan",
           "NAME_LONG": "South Sudan",
           "BRK_NAME": "S. Sudan",
           "BRK_GROUP": "",
@@ -12662,7 +12662,7 @@
           "GEOU_DIF": 0,
           "GEOUNIT": "Central African Republic",
           "SUBUNIT": "Central African Republic",
-          "NAME": "Central African Rep.",
+          "NAME": "Central African Republic",
           "NAME_LONG": "Central African Republic",
           "BRK_NAME": "Central African Rep.",
           "BRK_GROUP": "",
@@ -15960,7 +15960,7 @@
           "GEOU_DIF": 0,
           "GEOUNIT": "Dominican Republic",
           "SUBUNIT": "Dominican Republic",
-          "NAME": "Dominican Rep.",
+          "NAME": "Dominican Republic",
           "NAME_LONG": "Dominican Republic",
           "BRK_NAME": "Dominican Rep.",
           "BRK_GROUP": "",
@@ -23002,7 +23002,7 @@
           "GEOU_DIF": 0,
           "GEOUNIT": "Equatorial Guinea",
           "SUBUNIT": "Equatorial Guinea",
-          "NAME": "Eq. Guinea",
+          "NAME": "Equatorial Guinea",
           "NAME_LONG": "Equatorial Guinea",
           "BRK_NAME": "Eq. Guinea",
           "BRK_GROUP": "",
@@ -24853,6 +24853,7 @@
           "NAME_ZH": "基里巴斯",
           "NAME_ZHT": "吉里巴斯"
         },
+        "highlight": 4,
         "bbox": [
           -157.44896399599992, 1.7639020850000406, -157.19098873599992,
           1.902167059000078
@@ -25031,7 +25032,7 @@
           "GEOU_DIF": 0,
           "GEOUNIT": "Saint Vincent and the Grenadines",
           "SUBUNIT": "Saint Vincent and the Grenadines",
-          "NAME": "St. Vin. and Gren.",
+          "NAME": "Saint Vincent and the Grenadines",
           "NAME_LONG": "Saint Vincent and the Grenadines",
           "BRK_NAME": "St. Vin. and Gren.",
           "BRK_GROUP": "",
@@ -25407,7 +25408,7 @@
           "GEOU_DIF": 0,
           "GEOUNIT": "Saint Kitts and Nevis",
           "SUBUNIT": "Saint Kitts and Nevis",
-          "NAME": "St. Kitts and Nevis",
+          "NAME": "Saint Kitts and Nevis",
           "NAME_LONG": "Saint Kitts and Nevis",
           "BRK_NAME": "Saint Kitts and Nevis",
           "BRK_GROUP": "",
@@ -25614,6 +25615,7 @@
           "NAME_ZH": "毛里求斯",
           "NAME_ZHT": "模里西斯"
         },
+        "highlight": 2,
         "bbox": [
           57.357758009000065, -20.479668877999927, 57.79574629000007,
           -20.024834893999923
@@ -25689,6 +25691,7 @@
           "NAME_ZH": "科摩罗",
           "NAME_ZHT": "葛摩"
         },
+        "highlight": 2,
         "bbox": [
           43.26286868600005, -11.821709893999923, 43.46656334700003,
           -11.379571221999925
@@ -25765,6 +25768,7 @@
           "NAME_ZH": "圣多美和普林西比",
           "NAME_ZHT": "聖多美普林西比"
         },
+        "highlight": 1,
         "bbox": [
           6.4616805350000845, 0.03363678600004505, 6.740082227000073,
           0.40713125200005607
@@ -25844,7 +25848,8 @@
         "bbox": [
           -23.785755988999938, 14.93553294500009, -23.456776495999918,
           15.266017971000053
-        ]
+        ],
+        "highlight": 4
       },
       {
         "type": "Feature",
@@ -25917,6 +25922,7 @@
           "NAME_ZH": "马耳他",
           "NAME_ZHT": "馬耳他"
         },
+        "highlight": 0.5,
         "bbox": [
           14.342621290000068, 35.801214911000045, 14.548024936000047,
           35.965725002000056
@@ -26070,6 +26076,7 @@
           "NAME_ZH": "汤加",
           "NAME_ZHT": "東加"
         },
+        "highlight": 4,
         "bbox": [
           -175.32575436099992, -21.26799895599993, -175.0655411449999,
           -21.111260674999926
@@ -26146,6 +26153,7 @@
           "NAME_ZH": "萨摩亚",
           "NAME_ZHT": "薩摩亞"
         },
+        "highlight": 4,
         "bbox": [
           -172.74974524599992, -13.805352471999925, -172.2010391919999,
           -13.462823174999926
@@ -26329,6 +26337,7 @@
           "NAME_ZH": "密克罗尼西亚联邦",
           "NAME_ZHT": "密克羅尼西亞聯邦"
         },
+        "highlight": 4,
         "bbox": [
           158.125824415, 6.7934431010000935, 158.29078209700003,
           6.9379743510000935
@@ -26490,6 +26499,7 @@
           "NAME_ZH": "帕劳",
           "NAME_ZHT": "帛琉"
         },
+        "highlight": 4,
         "bbox": [
           134.48755944100003, 7.421128648000092, 134.64820397200003,
           7.719427802000041
@@ -26567,6 +26577,7 @@
           "NAME_ZH": "巴林",
           "NAME_ZHT": "巴林"
         },
+        "highlight": 4,
         "bbox": [
           50.45297285200007, 25.85455963700008, 50.61475670700008,
           26.194240627000056
@@ -26871,6 +26882,7 @@
           "NAME_ZH": "塞舌尔",
           "NAME_ZHT": "塞席爾"
         },
+        "highlight": 2,
         "bbox": [
           55.401702493555085, -4.750406668978492, 55.52855464714847,
           -4.618115330384728
@@ -26948,6 +26960,7 @@
           "NAME_ZH": "马绍尔群岛",
           "NAME_ZHT": "馬紹爾群島"
         },
+        "highlight": 1,
         "bbox": [
           171.22641035200002, 7.0676944030000755, 171.3935653000001,
           7.109930731000077
@@ -27023,6 +27036,7 @@
           "NAME_ZH": "图瓦卢",
           "NAME_ZHT": "吐瓦魯"
         },
+        "highlight": 4,
         "bbox": [
           179.19125410200002, -8.542087497999944, 179.21753991000003,
           -8.518975518999923
@@ -27122,6 +27136,7 @@
           "NAME_ZH": "马尔代夫",
           "NAME_ZHT": "馬爾地夫"
         },
+        "highlight": 6,
         "bbox": [
           73.51201489529225, 4.183312241903804, 73.54619719090421,
           4.24303891168205
@@ -27198,6 +27213,7 @@
           "NAME_ZH": "瑙鲁",
           "NAME_ZHT": "諾魯"
         },
+        "highlight": 4,
         "bbox": [
           166.913422071, -0.5475399719999245, 166.95826256600003,
           -0.4904110659999219

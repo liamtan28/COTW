@@ -107,6 +107,7 @@ export type GeoJsonFeature = {
       NAME_ZHT: string;
     };
     bbox: number[];
+    highlight?: number;
     geometry:
       | {
           TYPE: "Polygon";
@@ -150,6 +151,7 @@ interface CotwGameProps {
     found: boolean;
     reveal: boolean;
     baseColor: string;
+    highlight: number;
     position: {
         lat: number;
         lng: number;
@@ -168,38 +170,54 @@ enum Continent {
  }
 
 const COLOR_INDEX: Record<Continent, string[]> = {
-    [Continent.ASIA]: ["rgba(255, 250, 101,0.4)", "rgba(255, 242, 0,0.4)"],
-    [Continent.NORTH_AMERICA]: ["rgba(50, 255, 126,0.4)", "rgba(58, 227, 116,0.4)"],
-    [Continent.SOUTH_AMERICA]: [ "rgba(255, 175, 64,0.4)", "rgba(255, 159, 26,0.4)"],
-    [Continent.EUROPE]: ["rgba(125, 95, 255,0.4)", "rgba(113, 88, 226,0.4)"],
-    [Continent.AFRICA]: ["rgba(24, 220, 255,0.4)", "rgba(23, 192, 235,0.4)"],
-    [Continent.OCEANIA]: ["rgba(126, 255, 245,0.4)", "rgba(103, 230, 220,0.4)"],
+    [Continent.ASIA]: ["rgba(255, 250, 101,0.9)", "rgba(255, 242, 0,0.9)"],
+    [Continent.NORTH_AMERICA]: ["rgba(50, 255, 126,0.9)", "rgba(58, 227, 116,0.9)"],
+    [Continent.SOUTH_AMERICA]: [ "rgba(255, 175, 64,0.9)", "rgba(255, 159, 26,0.9)"],
+    [Continent.EUROPE]: ["rgba(125, 95, 255,0.9)", "rgba(113, 88, 226,0.9)"],
+    [Continent.AFRICA]: ["rgba(24, 220, 255,0.9)", "rgba(23, 192, 235,0.9)"],
+    [Continent.OCEANIA]: ["rgba(126, 255, 245,0.9)", "rgba(103, 230, 220,0.9)"],
  };
 
 export const convertGeoJsonToCountryData = (input: GeoJson): CotwCountryData[] => (
     input.features
-        .map((country: GeoJsonFeature): CotwCountryData => ({
-            properties: {
-                ISO_A2: country.properties.ISO_A2,
-                NAME: country.properties.NAME,
-                NAME_LONG: country.properties.NAME_LONG,
-                ABBREV: country.properties.ABBREV,
-                FORMAL_EN: country.properties.FORMAL_EN,
-                FORMAL_FR: country.properties.FORMAL_FR,
-                TYPE: country.properties.TYPE,
-                CONTINENT: country.properties.CONTINENT,
-                REGION_UN: country.properties.REGION_UN,
-                SUBREGION: country.properties.SUBREGION,
-                REGION_WB: country.properties.REGION_WB,
-            },
-            geometry: country.geometry,
-            bbox: country.bbox,
-            found: false,
-            reveal: false,
-            position: {
-                lat: 0,//country.geometry.TYPE === "Polygon" ? country.geometry.coordinates[0][0][0] as unknown as number : country.geometry.coordinates[0][0][0][0] as number,
-                lng: 0,//country.geometry.TYPE === "Polygon" ? country.geometry.coordinates[0][0][1] as unknown as number : country.geometry.coordinates[0][0][0][1] as number,
-            },
-            baseColor: COLOR_INDEX[country.properties.CONTINENT][Math.floor(Math.random() * 2)],
-        }))
+        .map((country: GeoJsonFeature): CotwCountryData => {
+            const { bbox } = country;
+            const [lng1, lat1, lng2, lat2] = bbox;
+            const lat = (lat1 + lat2) / 2;
+            const lng = (lng1 + lng2) / 2;
+
+            return {
+                properties: {
+                    ISO_A2: country.properties.ISO_A2,
+                    NAME: country.properties.NAME,
+                    NAME_LONG: country.properties.NAME_LONG,
+                    ABBREV: country.properties.ABBREV,
+                    FORMAL_EN: country.properties.FORMAL_EN,
+                    FORMAL_FR: country.properties.FORMAL_FR,
+                    TYPE: country.properties.TYPE,
+                    CONTINENT: country.properties.CONTINENT,
+                    REGION_UN: country.properties.REGION_UN,
+                    SUBREGION: country.properties.SUBREGION,
+                    REGION_WB: country.properties.REGION_WB,
+                },
+                geometry: country.geometry,
+                highlight: country.highlight ?? 0,
+                bbox: country.bbox,
+                found: false,
+                reveal: false,
+                position: {
+                    lat,
+                    lng,
+                },
+                baseColor: COLOR_INDEX[country.properties.CONTINENT][Math.floor(Math.random() * 2)],
+            };
+        }
+    )
 );
+/**
+ *       const { bbox } = country;
+      const [lng1, lat1, lng2, lat2] = bbox;
+      const latitude = (lat1 + lat2) / 2;
+      const longitude = (lng1 + lng2) / 2;
+      return { lat: latitude, lng: longitude };
+ */
