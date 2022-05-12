@@ -1,7 +1,7 @@
 node_modules/
 dist/
 .parcel-cache
-v2/.DS_Store
+.DS_Store
 parcel-bundle-reports/
 secrets.txt
 yarn-error.log
