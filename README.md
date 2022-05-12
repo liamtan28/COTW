@@ -1,6 +1,8 @@
 ## COTW
 ### Countries of the world game
 
+![COTW Game](public/screengrab.png "COTW Game")
+
 #### Technologies
 
 The application runs on the web, and supports mobile webviews and controls. To achieve this, the following is used:
