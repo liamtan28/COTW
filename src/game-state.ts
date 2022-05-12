@@ -127,6 +127,9 @@ export default class GameStateManager {
         
         this.gameState.countriesComplete++;
         this.updateCounterDOM();
+        if(this.gameState.countriesComplete === 197) {
+          this.endGame();
+        }
         //this.updateCountryTableDOM();
         const missingCountries = this.gameState.displayingMissingCountries ? 
           this.gameState.countries.filter(c => !c.found) :

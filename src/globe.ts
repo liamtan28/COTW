@@ -33,7 +33,7 @@ export default class GlobeManager {
     private static LABEL_ALTITIDE = 0;
     private static LABEL_RES = 2;
 
-    private static AUTO_ROTATE_SPEED = 0.6;
+    private static AUTO_ROTATE_SPEED = 0.4;
   
     private missingCountries: CotwCountryData[];
     private highlightCountries: CotwCountryData[];
@@ -131,7 +131,7 @@ export default class GlobeManager {
       this.isAutoRotating = !this.isAutoRotating;
  
       (this.instance.controls() as any).autoRotate = this.isAutoRotating;
-      (this.instance.controls() as any).authRotateSpeed = GlobeManager.AUTO_ROTATE_SPEED;
+      (this.instance.controls() as any).autoRotateSpeed = GlobeManager.AUTO_ROTATE_SPEED;
     }
   
     /**
