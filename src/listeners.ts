@@ -1,6 +1,6 @@
 import GameStateManager from "./game-state";
 
-export const setInputEventListener = (manager: GameStateManager) => {
+const setInputEventListener = (manager: GameStateManager) => {
     const input = document.querySelector<HTMLInputElement>("input#answer");
     input.addEventListener("keyup", () => {
         const searchKey = input.value.toLowerCase();
@@ -11,7 +11,7 @@ export const setInputEventListener = (manager: GameStateManager) => {
     });
 }
   
-export const setTimerEventListener = (manager: GameStateManager) => {
+const setTimerEventListener = (manager: GameStateManager) => {
     const timerButton = document.querySelector<HTMLElement>("span.control#game-over");
 
     timerButton.addEventListener("click", () => {
@@ -23,7 +23,7 @@ export const setTimerEventListener = (manager: GameStateManager) => {
     });
 }
   
-export const setHelpEventListeners = (manager: GameStateManager) => {
+const setHelpEventListeners = (manager: GameStateManager) => {
     const helpButton = document.querySelector<HTMLElement>("span.control#help");
     const dismissButton = document.querySelector<HTMLElement>("div#how-to-play button");
   
@@ -31,7 +31,7 @@ export const setHelpEventListeners = (manager: GameStateManager) => {
     dismissButton.addEventListener("click", () => manager.toggleHelp());
 }
   
-export const setGiveUpEventListeners = (manager: GameStateManager) => {
+const setGiveUpEventListeners = (manager: GameStateManager) => {
     const giveUpConfirm = document.querySelector<HTMLElement>("button#confirm-give-up");
     const giveUpCancel = document.querySelector<HTMLElement>("button#cancel-give-up");
   
@@ -39,7 +39,21 @@ export const setGiveUpEventListeners = (manager: GameStateManager) => {
     giveUpCancel.addEventListener("click", () => manager.toggleGiveUp());
 }
 
-export const setMissingCountriesEventListeners = (manager: GameStateManager) => {
+const setMissingCountriesEventListeners = (manager: GameStateManager) => {
     const counter = document.querySelector<HTMLElement>("p#counter");
     counter.addEventListener("click", () => manager.toggleDisplayMissingCountries());
+}
+
+const listeners = [
+    setInputEventListener,
+    setTimerEventListener,
+    setHelpEventListeners,
+    setGiveUpEventListeners,
+    setMissingCountriesEventListeners
+];
+
+export const bindListeners = (manager: GameStateManager): void => {
+    for (const listener of listeners) {
+        listener(manager);
+    }
 }
