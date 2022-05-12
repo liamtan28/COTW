@@ -83,6 +83,7 @@ export default class GameStateManager {
       window.clearInterval(this.gameTimerId);
       this.updateInputDOM();
       this.updateGiveUpDOM();
+      this.updateTimerDOM();
       this.revealAll();
       this.globeManager.toggleAutoRotate();
     }
@@ -93,11 +94,12 @@ export default class GameStateManager {
         this.gameState.countries.filter(c => !c.found) :
         [];
       this.globeManager.setMissingCountries(missingCountries);
+      this.updateHelpDOM();
     }
   
-    public toggleHelp(): void {
+    public toggleExplanation(): void {
       this.gameState.displayingHelp = !this.gameState.displayingHelp;
-      this.updateHowToPlayDOM();
+      this.updateExplanationDOM();
     }
   
     public toggleGiveUp(): void {
@@ -173,7 +175,7 @@ export default class GameStateManager {
       counter.innerHTML = `${this.gameState.countriesComplete}/197`;
     }
   
-    private updateHowToPlayDOM(): void {
+    private updateExplanationDOM(): void {
       const blur = document.querySelector<HTMLElement>("div#how-to-play-blur");
       const window = document.querySelector<HTMLElement>("div#how-to-play");
   
@@ -183,6 +185,12 @@ export default class GameStateManager {
       window.style.display = value;
     }
   
+    private updateHelpDOM(): void {
+      const help = document.querySelector<HTMLElement>("span.control#help p");
+      help.innerHTML = 
+        (this.gameState.displayingMissingCountries ? "Hide" : "Show") +
+        " missing countries";
+    }
     private updateGiveUpDOM(): void {
       const blur = document.querySelector<HTMLElement>("div#how-to-play-blur");
       const window = document.querySelector<HTMLElement>("div#give-up");
@@ -195,25 +203,37 @@ export default class GameStateManager {
   
     private updateTimerDOM(): void {
       const control = document.querySelector<HTMLElement>("span.control#game-over");
-      const timer = document.querySelector<HTMLElement>("strong#time-remaining");
-  
+      const timer = document.querySelector<HTMLElement>("p#time-remaining");
+      
       // Update color
-      const fill = this.gameState.gameStarted ? "rgba(255, 56, 56, 0.8)" : "#000";
-    
+      const fill = this.gameState.gameStarted ? "rgba(255, 56, 56, 0.8)" : "rgba(0,0,0,0.7)";
+  
       control.style.color = fill;
       control.style.fill = fill;
-  
-      // Update time remaining in minutes
-      let minutes = String(Math.floor(this.gameState.timeRemaining / 1000 / 60));
-      let seconds = String(Math.round((parseInt(minutes, 10) - this.gameState.timeRemaining / 1000 / 60) * 60) * -1);
-  
-      if (minutes.length === 1) {
-        minutes = "0" + minutes;
+
+      if (!this.gameStarted && !this.gameOver) {
+        timer.innerHTML = "Start game";
+        return;
       }
-      if (seconds.length === 1) {
-        seconds = "0" + seconds;
+
+      if (this.gameOver) {
+        timer.innerHTML = "Start over";
+        return;
       }
-      timer.innerHTML = `${minutes}:${seconds}`;
+
+      if (this.gameStarted) {
+        let minutes = String(Math.floor(this.gameState.timeRemaining / 1000 / 60));
+        let seconds = String(Math.round((parseInt(minutes, 10) - this.gameState.timeRemaining / 1000 / 60) * 60) * -1);
+    
+        if (minutes.length === 1) {
+          minutes = "0" + minutes;
+        }
+        if (seconds.length === 1) {
+          seconds = "0" + seconds;
+        }
+        timer.innerHTML = `${minutes}:${seconds}`;
+      }
+  
     }
   
     private updateInputDOM(): void {

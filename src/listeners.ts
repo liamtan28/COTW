@@ -23,12 +23,9 @@ const setTimerEventListener = (manager: GameStateManager) => {
     });
 }
   
-const setHelpEventListeners = (manager: GameStateManager) => {
-    const helpButton = document.querySelector<HTMLElement>("span.control#help");
+const setExplanationEventListeners = (manager: GameStateManager) => {
     const dismissButton = document.querySelector<HTMLElement>("div#how-to-play button");
-  
-    helpButton.addEventListener("click", () => manager.toggleHelp());
-    dismissButton.addEventListener("click", () => manager.toggleHelp());
+    dismissButton.addEventListener("click", () => manager.toggleExplanation());
 }
   
 const setGiveUpEventListeners = (manager: GameStateManager) => {
@@ -40,14 +37,14 @@ const setGiveUpEventListeners = (manager: GameStateManager) => {
 }
 
 const setMissingCountriesEventListeners = (manager: GameStateManager) => {
-    const counter = document.querySelector<HTMLElement>("p#counter");
-    counter.addEventListener("click", () => manager.toggleDisplayMissingCountries());
+    const help = document.querySelector<HTMLElement>("span.control#help");
+    help.addEventListener("click", () => manager.toggleDisplayMissingCountries());
 }
 
 const listeners = [
     setInputEventListener,
     setTimerEventListener,
-    setHelpEventListeners,
+    setExplanationEventListeners,
     setGiveUpEventListeners,
     setMissingCountriesEventListeners
 ];
