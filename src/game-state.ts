@@ -72,6 +72,8 @@ export default class GameStateManager {
         }
   
       }, 1000);
+
+      this.globeManager.toggleAutoRotate();
       console.log(`[GameStateManager] Starting game!`, { gameState: this.gameState }); 
     }
   
@@ -82,6 +84,7 @@ export default class GameStateManager {
       this.updateInputDOM();
       this.updateGiveUpDOM();
       this.revealAll();
+      this.globeManager.toggleAutoRotate();
     }
   
     public toggleDisplayMissingCountries(): void {

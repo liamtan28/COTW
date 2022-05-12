@@ -32,14 +32,18 @@ export default class GlobeManager {
     private static LABEL_RADIUS = 1000000;
     private static LABEL_ALTITIDE = 0;
     private static LABEL_RES = 2;
+
+    private static AUTO_ROTATE_SPEED = 0.6;
   
     private missingCountries: CotwCountryData[];
     private highlightCountries: CotwCountryData[];
+    private isAutoRotating: boolean;
   
     public constructor(root: HTMLElement, data: CotwCountryData[]) {
       this.root = root;
       this.highlightCountries = data.filter(c => c.highlight);
       this.missingCountries = [];
+      this.isAutoRotating = false;
     }
   
     private static getCountryAltitude(country: CotwCountryData): number {
@@ -120,6 +124,14 @@ export default class GlobeManager {
         (this.root);
   
         this.loadCustomTextures();
+        this.toggleAutoRotate();
+    }
+
+    public toggleAutoRotate(): void {
+      this.isAutoRotating = !this.isAutoRotating;
+ 
+      (this.instance.controls() as any).autoRotate = this.isAutoRotating;
+      (this.instance.controls() as any).authRotateSpeed = GlobeManager.AUTO_ROTATE_SPEED;
     }
   
     /**
