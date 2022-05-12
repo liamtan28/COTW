@@ -41,4 +41,4 @@ yarn push
 
 Below is a high level diagram of how the application components work and the render cycle behaves.
 
-![Application components](public/appcomp.jpg "Application components")
+![Application components](public/appcomp.png "Application components")
