@@ -1,3 +1,3 @@
 export default {
-    NGINX_SERVE: false, // set to true to deploy
+    NGINX_SERVE: true, // set to true to deploy
 }
