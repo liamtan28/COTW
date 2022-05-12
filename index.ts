@@ -1,285 +1,419 @@
-import { default as countryHashMap } from "./map-data.json";
-import { ELEMENT_DICT } from "./element-dict";
-import { setViewBoxEventListeners, setZoomEventListeners } from "./map-controls";
+import Globe, { ConfigOptions, GlobeInstance } from "globe.gl";
+import { CotwCountryData, convertGeoJsonToCountryData, GeoJson } from "./data";
+import GEO_JSON from "./datasets/countries.json";
+import ALTERNATIVES from "./datasets/alternatives.json";
+import * as THREE from "three";
+const deploy = true;
 
-enum Continent {
-   NORTH_AMERICA,
-   SOUTH_AMERICA,
-   EUROPE,
-   ASIA,
-   AFRICA,
-   OCEANIA,
-   NOT_APPLICABLE,
+interface GameState {
+  countries: CotwCountryData[],
+  countriesComplete: number,
+
+  timeRemaining: number,
+
+  gameStarted: boolean,
+  gameOver: boolean,
+  displayingHelp: boolean,
+  displayingGiveUp: boolean,
+  displayingMissingCountries: boolean,
 }
 
-class Game {
+class GlobeManager {
 
-   private static SVG_NAMESPACE = "http://www.w3.org/2000/svg";
-
-   private viewPort: {
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-   }
-
-   private scoreboard: Record<Continent, string[]> = {
-      [Continent.ASIA]: [],
-      [Continent.NORTH_AMERICA]: [],
-      [Continent.SOUTH_AMERICA]: [],
-      [Continent.EUROPE]: [],
-      [Continent.AFRICA]: [],
-      [Continent.OCEANIA]: [],
-      [Continent.NOT_APPLICABLE]: [],
-   }
-   private static targetNumCountries: Record<Continent, number> = {
-      [Continent.ASIA]: 49,
-      [Continent.NORTH_AMERICA]: 23,
-      [Continent.SOUTH_AMERICA]: 12,
-      [Continent.EUROPE]: 45,
-      [Continent.AFRICA]: 54,
-      [Continent.OCEANIA]: 14,
-      [Continent.NOT_APPLICABLE]: 0,
-   }
-   private completeCountries: number = 0;
-
-   private static COLOR_INDEX: Record<Continent, string[]> = {
-      [Continent.ASIA]: ["#fc5c65", "#eb3b5a"],
-      [Continent.NORTH_AMERICA]: ["#fd9644", "#fa8231"],
-      [Continent.SOUTH_AMERICA]: [ "#fed330", "#f7b731"],
-      [Continent.EUROPE]: ["#26de81", "#20bf6b"],
-      [Continent.AFRICA]: ["#4b7bec", "#3867d6"],
-      [Continent.OCEANIA]: ["#a55eea", "#8854d0"],
-      [Continent.NOT_APPLICABLE]: ["#778ca3", "#4b6584"],
-   };
-
-   public constructor(width: number, height: number, originX: number, originY: number) {
-      this.viewPort = {
-         width,
-         height,
-         x: originX,
-         y: originY,
-      };
-   }
-
-   /********************
-    * GAME UPDATES
-    */
-
-   public updateScoreboard(): void {
-      // TODO dynamically add sections to html with id of enum. That 
-      // way only one loop required.
-
-      const asiaSection = ELEMENT_DICT.scoreboardSectionByContinent("asia") as HTMLElement;
-      const northAmericaSection = ELEMENT_DICT.scoreboardSectionByContinent("northamerica") as HTMLElement;
-      const southAmericaSection = ELEMENT_DICT.scoreboardSectionByContinent("southamerica") as HTMLElement;
-      const europeSection = ELEMENT_DICT.scoreboardSectionByContinent("europe") as HTMLElement;
-      const africaSection = ELEMENT_DICT.scoreboardSectionByContinent("africa") as HTMLElement;
-      const oceaniaSection = ELEMENT_DICT.scoreboardSectionByContinent("oceania") as HTMLElement;
-      const miscSection = ELEMENT_DICT.scoreboardSectionByContinent("misc") as HTMLElement;
-
-      asiaSection.innerHTML = "";
-      for (const country of this.scoreboard[Continent.ASIA]) {
-         const entry = document.createElement("p");
-         entry.innerHTML = country;
-         entry.className = "scoreboard__continent-entry";
-         asiaSection.appendChild(entry);  
-      }
-   }
-
-   private colorCountry(country: Country): void {
-      const palette = Game.COLOR_INDEX[country.continent];
-      // Select either the 0th or nth index of the palette at random.
-      const color = palette[Math.floor(Math.random() * palette.length)];
-      (<NodeListOf<SVGPathElement>>ELEMENT_DICT.pathsById(country.id)).forEach(e => e.style.fill = color);
-   }
-
-   private markCountryAsComplete(country: Country): void {
-      (<NodeListOf<SVGPathElement>>ELEMENT_DICT.pathsById(country.id)).forEach(e => e.setAttribute("data-found", "true"));
-      this.scoreboard[country.continent].push(country.title);
-   }
-
-   private addCountryToHistory(country: Country): void {
-      const historyElement = ELEMENT_DICT.history() as Element;
-      const palette = Game.COLOR_INDEX[country.continent];
-      const color = palette[Math.floor(Math.random() * palette.length)];
-   
-      if (this.completeCountries === 1) {
-         historyElement.innerHTML = "";
-      }
-      const countryEntryElement = document.createElement("p");
-      countryEntryElement.className = "country-entry";
-      countryEntryElement.style.background = color;
-   
-      countryEntryElement.innerHTML = `<strong>${this.completeCountries}</strong> ${country.title}`;
-   
-      historyElement.prepend(countryEntryElement);
-      historyElement.scrollTop = 0;
-   
-   }
-
-   private deleteCountryAndDuplicates(country: Country): void {
-      delete countryHashMap[country.title.toLowerCase()];
-      if (country.acceptedNames) {
-         for (const name of country.acceptedNames) {
-            if (countryHashMap.hasOwnProperty(name.toLowerCase())) {
-               delete countryHashMap[name.toLowerCase()];
-            }
-         }
-      }
-   }
-
-   private updateCounters(country: Country): void {
-      (ELEMENT_DICT.counter() as Element).innerHTML = `${this.completeCountries}/197`; 
-      // TODO autogenerate these markers to have the continent enum as part of it
-      (ELEMENT_DICT.countryCounter(country.continent) as SVGElement).innerHTML = `(${this.scoreboard[country.continent].length}/${Game.targetNumCountries[country.continent]})`;
-   } 
-
-
-   /********************
-    * Public interfaces
-    */
-
-   public countryFound(country: Country): void {
+  private root: HTMLElement;
+  private instance: GlobeInstance;
   
-      this.completeCountries++;
-      // Adds found: true prop to DOM element, and pushes to scoreboard
-      this.markCountryAsComplete(country);
-      // Finds SVG path, and changes fill color
-      this.colorCountry(country);
-      // Adds DOM element to history scroller at bottom
-      this.addCountryToHistory(country);
-      // Removes country from dataset (so it can't be found again), as well as any duplicates
-      this.deleteCountryAndDuplicates(country);
-      // Updates DOM counters.
-      this.updateCounters(country);   
-   }
+  private static GLOBE_IMG_MAP_URL = deploy ? './img/earth-blue-marble.jpg' : '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
+  private static BUMP_MAP_URL = deploy ? './img/earth-topology.png' : '//unpkg.com/three-globe/example/img/earth-topology.png';
+;  private static WATER_BUMP_MAP_URL = deploy ? './img/earth-water.png' : '//unpkg.com/three-globe/example/img/earth-water.png';
+  private static POLY_ALTITUDE = 0.01;
+  private static POLY_BASE_COLOR = 'rgba(0,0,0,0.3)';
+  private static POLY_SIDE_COLOR = 'rgba(200,200,200,0.5)';
+  private static POLY_STROKE_COLOR = 'rgba(200,200,200,0.5)';
+  private static HIGHLIGHT_COLOR = 'rgba(255,255,255,0.4)'; // Labels for small countries that need a highligh
 
-   public drawCountries(): void {
-      
-      const groupNode = ELEMENT_DICT.mapPathGroup() as Element;
-      
-      for (const country of Object.values(countryHashMap)) {
-            let countryNode = Game.createSVGPath();
-   
-            countryNode = Game.setSVGAttribute(countryNode, "title", country.title);
-            countryNode.id = country.id;
-            countryNode.setAttribute("d", country.svgPath);
-            countryNode.style.fill = "#d1d8e0"; // default grey
-            countryNode.style.stroke = "rgba(0,0,0,0.2)"; // dark grey
-            countryNode.style.strokeWidth = "0.5"; // dark grey
-            countryNode.setAttribute("data-found", "false");
-            groupNode.appendChild(countryNode);
-      }
-          
-   }
+  private static POLY_HOVER_ALTITUDE = 0.04;
+  private static POLY_HOVER_COLOR = 'rgba(0,0,0,0.5)';
+  private static POLY_HOVER_TRANSITION = 300;
 
-   public finish(): void {
-      console.log(countryHashMap);
-   };
+  private static POLY_FAILED_COLOR = 'rgba(255, 56, 56, 1.0)';
 
-   
-   /********************
-    * SVG UTILS
-    */
+  private missingCountries: CotwCountryData[];
+  private highlightCountries: CotwCountryData[];
 
-   private static createSVGPath(): SVGPathElement {
-      return document.createElementNS(Game.SVG_NAMESPACE, "path") as SVGPathElement;
-   }
-   private static setSVGAttribute(node: SVGPathElement, attr: string, value: string): SVGPathElement {
-       node.setAttributeNS(Game.SVG_NAMESPACE, attr, value);
-       return node;
-   };   
+  public constructor(root: HTMLElement, data: CotwCountryData[]) {
+    this.root = root;
+    this.highlightCountries = data.filter(c => c.highlight);
+    this.missingCountries = [];
+  }
 
-}
+  public draw(countryData: CotwCountryData[]): void {
+ 
+    this.instance = Globe()
+ 
 
+      .globeImageUrl(GlobeManager.GLOBE_IMG_MAP_URL)
+      .bumpImageUrl(GlobeManager.BUMP_MAP_URL)
+      .lineHoverPrecision(0)
+      .polygonsData(countryData)
+      .polygonAltitude((country: any) => country.reveal && !country.found ? GlobeManager.POLY_HOVER_ALTITUDE : GlobeManager.POLY_ALTITUDE)
+      .polygonCapColor((country: any) => {
+        if (country.found && country.reveal) {
+          return country.baseColor;
+        }
+        if (!country.found && !country.reveal) {
+          return GlobeManager.POLY_BASE_COLOR;
+        }
 
-/****************
- * Event listeners
- */
+        // If the country was not found, but the game is over
+        return GlobeManager.POLY_FAILED_COLOR;
+        
+      })
+      .polygonSideColor((country: any) => country.reveal && !country.found ? GlobeManager.POLY_FAILED_COLOR : country.baseColor)
+      .polygonStrokeColor(() => GlobeManager.POLY_STROKE_COLOR)
+      .polygonLabel((country: any) => country.reveal ? country.properties.NAME : "???")
 
-const setInputEventListener = (game: Game) => {
-    const input = document.querySelector<HTMLInputElement>("input#answer");
+      .labelsData(this.missingCountries.concat(this.highlightCountries))
+      .labelLat(d => d.position.lat)
+      .labelLng(d => d.position.lng)
+      .labelText(() => "")
+      .labelSize(d => Math.sqrt(1000000) * 4e-4)
+      .labelDotRadius(d => d.highlight ? Math.sqrt(10000000 * d.highlight) * 4e-4 : Math.sqrt(1000000) * 4e-4)
+      .labelColor((c) => 
+        c.highlight ? 
+          (c.found ? c.baseColor : GlobeManager.HIGHLIGHT_COLOR) : 
+          GlobeManager.POLY_FAILED_COLOR
+      )
+      .labelResolution(2)
+      .labelAltitude(0.00)
+      (this.root);
 
-    input.addEventListener("keyup", () => {
-         const country = countryHashMap[input.value.toLowerCase()];
-         if (country) {
-            input.value = "";
-            game.countryFound(country);
-         }
+      this.loadCustomTextures();
+  }
+
+  private loadCustomTextures(): void {
+    const globeMaterial = this.instance.globeMaterial();
+    globeMaterial.bumpScale = 10;
+    new THREE.TextureLoader().load(GlobeManager.WATER_BUMP_MAP_URL, texture => {
+      globeMaterial.specularMap = texture;
+      globeMaterial.specular = new THREE.Color('grey');
+      globeMaterial.shininess = 15;
     });
+
+    setTimeout(() => { // wait for scene to be populated (asynchronously)
+      const directionalLight = this.instance.scene().children.find(obj3d => obj3d.type === 'DirectionalLight');
+      directionalLight && directionalLight.position.set(1, 1, 1); // change light position to see the specularMap's effect
+    });
+  }
+
+  public enableHoverPolys(): void {
+    this.instance
+      .onPolygonHover(hoverD => this.instance
+        .polygonAltitude(d => d === hoverD ? GlobeManager.POLY_HOVER_ALTITUDE : GlobeManager.POLY_ALTITUDE)
+        .polygonCapColor(d => d === hoverD ? GlobeManager.POLY_HOVER_COLOR : GlobeManager.POLY_BASE_COLOR)
+    )
+    .polygonsTransitionDuration(GlobeManager.POLY_HOVER_TRANSITION)
+  }
+
+  public update(countryData: CotwCountryData[]): void {
+    this.instance.polygonsData(countryData);
+  }
+  public setMissingCountries(missingCountries: CotwCountryData[]): void {
+    this.missingCountries = missingCountries;
+    this.instance.labelsData(this.missingCountries.concat(this.highlightCountries));
+  }
+
+  public moveTo(country: CotwCountryData, ms: number = 250): void {
+    const centre = GlobeManager.findCentre(country);
+    this.instance.pointOfView(centre, ms);
+  }
+
+  private static findCentre(country: CotwCountryData) {
+      const { bbox } = country;
+      const [lng1, lat1, lng2, lat2] = bbox;
+      const latitude = (lat1 + lat2) / 2;
+      const longitude = (lng1 + lng2) / 2;
+      return { lat: latitude, lng: longitude };
+  }
+
 }
 
-const setMouseOverEventListener = (game: Game) => {
-   const countryPanel = ELEMENT_DICT.countryPanel() as HTMLElement;
+class GameStateManager {
 
-   for(const country of Object.values(countryHashMap)) {
-      const countryElements = ELEMENT_DICT.pathsById(country.id) as NodeListOf<SVGPathElement>;
+  private gameState: GameState;
+  private globeManager: GlobeManager;
+  private gameTimerId: number;
+
+  public constructor(countryData: CotwCountryData[], timeLimit: number = 900000) {
+    this.gameState = {
+      countries: countryData,
+      countriesComplete: 0,
+      timeRemaining: timeLimit,
+
+      gameStarted: false,
+      gameOver: false,
+      displayingHelp: true,
+      displayingGiveUp: false,
+      displayingMissingCountries: false,
+    }
+
+
+    const globeDOMElement = document.querySelector<HTMLElement>("div#globe");
+    this.globeManager = new GlobeManager(globeDOMElement, countryData);
+
+  }
+
+  public init(): void {
+    this.globeManager.draw(this.gameState.countries); 
+    //this.updateCountryTableDOM();
+    this.updateTimerDOM();
+  }
+
+  public get gameOver(): boolean {
+    return this.gameState.gameOver;
+  }
+  public get gameStarted(): boolean {
+    return this.gameState.gameStarted;
+  }
+  public get timeRemaining(): number {
+    return this.gameState.timeRemaining;
+  }
+
+  public startGame(): void {
+    this.gameState.gameStarted = true;
+    this.updateTimerDOM();
+    this.updateInputDOM();
+    
+    this.gameTimerId = window.setInterval(() => {
+
+      this.gameState.timeRemaining -= 1000;
+      this.updateTimerDOM();
+
+      if (this.gameState.timeRemaining <= 0) {
+        this.endGame();
+      }
+
+    }, 1000);
+    console.log(`[GameStateManager] Starting game!`, { gameState: this.gameState }); 
+  }
+
+  public endGame(): void {
+    this.gameState.gameOver = true;
+    this.gameState.displayingGiveUp = false;
+    window.clearInterval(this.gameTimerId);
+    this.updateInputDOM();
+    this.updateGiveUpDOM();
+    this.revealAll();
+  }
+
+  public toggleDisplayMissingCountries(): void {
+    this.gameState.displayingMissingCountries = !this.gameState.displayingMissingCountries;
+    const missingCountries = this.gameState.displayingMissingCountries ? 
+      this.gameState.countries.filter(c => !c.found) :
+      [];
+    this.globeManager.setMissingCountries(missingCountries);
+  }
+
+  public toggleHelp(): void {
+    this.gameState.displayingHelp = !this.gameState.displayingHelp;
+    this.updateHowToPlayDOM();
+  }
+
+  public toggleGiveUp(): void {
+    if (!this.gameState.gameStarted || this.gameState.gameOver) return;
+    this.gameState.displayingGiveUp = !this.gameState.displayingGiveUp;
+    this.updateGiveUpDOM();
+  }
+
+  public revealAll(): void {
+    for (const country of this.gameState.countries) {
+        country.reveal = true;
+    }    
+    this.globeManager.update(this.gameState.countries);
+  }
+
+  public checkAnswerAndUpdate(searchKey: string): boolean {
+    const _found = (country: CotwCountryData): boolean => {
+      if (country.found) {
+        return false;
+      }
       
-      countryElements.forEach(element => {
+      country.found = true;
+      country.reveal = true;
+      this.globeManager.update(this.gameState.countries);
+      this.globeManager.moveTo(country);
+      console.log(`[GameStateManager] Correct answer ${country.properties.NAME}`, { gameState: this.gameState });
+      
+      this.gameState.countriesComplete++;
+      this.updateCounterDOM();
+      //this.updateCountryTableDOM();
+      const missingCountries = this.gameState.displayingMissingCountries ? 
+        this.gameState.countries.filter(c => !c.found) :
+        [];
+      this.globeManager.setMissingCountries(missingCountries);
+      return true;
+    }
 
-         element.addEventListener("mouseenter", () => {     
+    if (!this.gameStarted || this.gameState.gameOver) {
+      return false;
+    }
 
-            document.querySelector("body").style.cursor = "pointer";
-            element.style.opacity = 0.5;
-            // TODO CHANGE THIS TO CONSTANT VALUE
-            if (element.getAttribute("data-found") === "true") {
-               countryPanel.innerHTML = `<strong>${country.title}</strong>`;
-            }
+    console.log(`[GameStateManager] Checking search key ${searchKey}`, { gameState: this.gameState });
+    const isAlternativeName = ALTERNATIVES.hasOwnProperty(searchKey.toLowerCase());
 
-         });
-         element.addEventListener("mouseleave", () => {
-
-            document.querySelector("body").style.cursor = "auto";
-            element.style.opacity = 1.0;
-            countryPanel.innerHTML = `<strong>...</strong>`;
-
-         });
+    // If the user input matches an alternative name
+    if (isAlternativeName) {
+      const realName = ALTERNATIVES[searchKey.toLowerCase()];
+      const country = this.gameState.countries.find((country: CotwCountryData): boolean => {
+        const nameLower = country.properties.NAME.toLowerCase();
+        return realName === nameLower;
       });
+
+      return _found(country);
+    }
+
+    // If the user input doesn't
+    for (const country of this.gameState.countries) {
+      const nameLower = country.properties.NAME.toLowerCase();
+      const keyLower = searchKey.toLowerCase();
+      if (nameLower === keyLower) {
+        return _found(country);
+      }
+      
+    }
+    return false;
+  }
+
+  /*
+  private updateCountryTableDOM(): void {
+    const table = document.querySelector<HTMLElement>("div#country-table");
+    const countries = this.gameState.countries;
+    table.querySelectorAll('section p').forEach(i => i.remove());
+    for (const country of countries) {
+      const entry = document.createElement("p");
+      const continent = country.properties.CONTINENT.toLowerCase().replace(/ /g, '');
+      entry.innerHTML = country.found ? country.properties.NAME : "&nbsp;";
+      table.querySelector(`section#${continent}`).appendChild(entry);
+
+    }
+  }
+  */
+
+  private updateCounterDOM(): void {
+    const counter = document.querySelector("p#counter");
+    counter.innerHTML = `${this.gameState.countriesComplete}/197`;
+  }
+
+  private updateHowToPlayDOM(): void {
+    const blur = document.querySelector<HTMLElement>("div#how-to-play-blur");
+    const window = document.querySelector<HTMLElement>("div#how-to-play");
+
+    const value = this.gameState.displayingHelp ? "block" : "none";
+
+    blur.style.display = value;
+    window.style.display = value;
+  }
+
+  private updateGiveUpDOM(): void {
+    const blur = document.querySelector<HTMLElement>("div#how-to-play-blur");
+    const window = document.querySelector<HTMLElement>("div#give-up");
+
+    const value = this.gameState.displayingGiveUp ? "block" : "none";
+
+    blur.style.display = value;
+    window.style.display = value;
+  }
+
+  private updateTimerDOM(): void {
+    const control = document.querySelector<HTMLElement>("span.control#game-over");
+    const timer = document.querySelector<HTMLElement>("strong#time-remaining");
+
+    // Update color
+    const fill = this.gameState.gameStarted ? "rgba(255, 56, 56, 0.8)" : "#000";
+  
+    control.style.color = fill;
+    control.style.fill = fill;
+
+    // Update time remaining in minutes
+    let minutes = String(Math.floor(this.gameState.timeRemaining / 1000 / 60));
+    let seconds = String(Math.round((parseInt(minutes, 10) - this.gameState.timeRemaining / 1000 / 60) * 60) * -1);
+
+    if (minutes.length === 1) {
+      minutes = "0" + minutes;
+    }
+    if (seconds.length === 1) {
+      seconds = "0" + seconds;
+    }
+    timer.innerHTML = `${minutes}:${seconds}`;
+  }
+
+  private updateInputDOM(): void {
+    const input = document.querySelector<HTMLInputElement>("input#answer");
+    if (!this.gameState.gameStarted || this.gameState.gameOver) {
+      input.disabled = true;
+      return;
+    }
+    input.disabled = false;
   }
 }
-const setScoreboardEventListener = (game: Game) => {
-   const help = ELEMENT_DICT.help() as HTMLElement;
-   const scoreboard = ELEMENT_DICT.scoreboard() as HTMLElement;
-   const scoreboardContainer = ELEMENT_DICT.scoreboardContainer() as HTMLElement;
-   const closeScoreboard = ELEMENT_DICT.closeScoreboard() as HTMLElement;
-   
-   help.addEventListener("click", () => {
-      game.updateScoreboard();
-      scoreboardContainer.style.display = "block";
-      scoreboard.style.display = "flex";
-   });
 
-   closeScoreboard.addEventListener("click", () => {
-      scoreboardContainer.style.display = "none";
-      scoreboard.style.display = "none";
-   });
-}
-const setFinishEventListener = (game: Game) => {
-   const finishButton = ELEMENT_DICT.finish() as HTMLElement;
+/** Init Game State Manager */
 
-   finishButton.addEventListener("click", game.finish);
-}
+const processedCountries: CotwCountryData[] = convertGeoJsonToCountryData(GEO_JSON as unknown as GeoJson);
+const manager = new GameStateManager(processedCountries);
+manager.init();
 
-window.addEventListener("load", () => {
-    const game: Game = new Game(800, 600, 0, 0);
-    game.drawCountries();
-
-   // Bind event listeners to game handlers
-   setInputEventListener(game);
-   setMouseOverEventListener(game);
-   setViewBoxEventListeners();
-   setZoomEventListeners();
-   setScoreboardEventListener(game);
-   setFinishEventListener(game);
-
-   // for (const country of Object.values(countryHashMap)) {
-   //    game.countryFound(country);
-   // }
-});
-
-/****
- * NUMBER MARKERS NEXT TO EACH REGION
- * 
- * 54 for Africa (dont forget sao tome)
+/**
+ * Configure Event Listeners
  */
+
+ const setInputEventListener = () => {
+  const input = document.querySelector<HTMLInputElement>("input#answer");
+
+   input.addEventListener("keyup", () => {
+        const searchKey = input.value.toLowerCase();
+        const found = manager.checkAnswerAndUpdate(searchKey);
+        if (found) {
+           input.value = "";
+        }
+   });
+}
+
+const setTimerEventListener = () => {
+  const timerButton = document.querySelector<HTMLElement>("span.control#game-over");
+
+  timerButton.addEventListener("click", () => {
+    if (!manager.gameStarted) {
+      manager.startGame();
+    } else {
+      manager.toggleGiveUp();
+    }
+  });
+}
+
+const setHelpEventListeners = () => {
+  const helpButton = document.querySelector<HTMLElement>("span.control#help");
+  const dismissButton = document.querySelector<HTMLElement>("div#how-to-play button");
+
+  helpButton.addEventListener("click", () => manager.toggleHelp());
+  dismissButton.addEventListener("click", () => manager.toggleHelp());
+}
+
+const setGiveUpEventListeners = () => {
+  const giveUpConfirm = document.querySelector<HTMLElement>("button#confirm-give-up");
+  const giveUpCancel = document.querySelector<HTMLElement>("button#cancel-give-up");
+
+  giveUpConfirm.addEventListener("click", () => manager.endGame());
+  giveUpCancel.addEventListener("click", () => manager.toggleGiveUp());
+}
+const setMissingCountriesEventListeners = () => {
+  const counter = document.querySelector<HTMLElement>("p#counter");
+  counter.addEventListener("click", () => manager.toggleDisplayMissingCountries());
+}
+
+
+setInputEventListener();
+setTimerEventListener();
+setHelpEventListeners();
+setGiveUpEventListeners();
+setMissingCountriesEventListeners();
