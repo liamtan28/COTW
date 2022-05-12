@@ -30,7 +30,7 @@ export default class GlobeManager {
   
     private static MISSING_COUNTRY_LABEL = "???";
     private static LABEL_RADIUS = 1000000;
-    private static LABEL_ALTITIDE = 0;
+    private static LABEL_ALTITUDE = 0;
     private static LABEL_RES = 2;
 
     private static AUTO_ROTATE_SPEED = 0.4;
@@ -71,28 +71,13 @@ export default class GlobeManager {
     // If the country has a highlight flag, this means it's not a missing country label, rather
     // a highlight label. 
     private static getLabelRadius(country: CotwCountryData): number {
-      return country.highlight ? 
-        Math.sqrt(GlobeManager.LABEL_RADIUS * 10 * country.highlight) * 4e-4 : 
-        Math.sqrt(GlobeManager.LABEL_RADIUS) * 4e-4
-      ;
+      return Math.sqrt(GlobeManager.LABEL_RADIUS * 10 * country.highlight) * 4e-4;
     }
   
     private static getLabelColor(country: CotwCountryData): string {
-      if (country.highlight) {
-        return country.found ? country.baseColor : GlobeManager.HIGHLIGHT_COLOR;
-      }
-      return GlobeManager.POLY_FAILED_COLOR;   
+        return country.found ? country.baseColor : GlobeManager.HIGHLIGHT_COLOR; 
     }
-  
-    // Label data is the concatenation of highlight countries and missing countries.
-    // Globe.gl doesn't allow multiple label datasets, so instead we keep a fixed 
-    // set of highlight countries as part of the dataset, and add on either an
-    // empty array if the missing countries are currently toggled to not display
-    // or not found countries if the missing countries are toggled on to 
-    // display
-    private getLabelData(): CotwCountryData[] {
-      return this.missingCountries.concat(this.highlightCountries);
-    }
+
   
     public draw(countryData: CotwCountryData[]): void {
    
@@ -110,7 +95,8 @@ export default class GlobeManager {
         .polygonLabel(c => GlobeManager.getCountryLabel(c as CotwCountryData))
         .polygonStrokeColor(GlobeManager.POLY_STROKE_COLOR)
   
-        .labelsData(this.getLabelData())
+         // Highlight countries
+        .labelsData(this.highlightCountries)
         .labelLat(c => (c as CotwCountryData).position.lat)
         .labelLng(c => (c as CotwCountryData).position.lng)
         .labelText(() => "") // Provide no label for missing country, just the circle radius
@@ -119,12 +105,20 @@ export default class GlobeManager {
         .labelColor(c => GlobeManager.getLabelColor(c as CotwCountryData))
   
         .labelResolution(GlobeManager.LABEL_RES)
-        .labelAltitude(GlobeManager.LABEL_ALTITIDE)
+        .labelAltitude(GlobeManager.LABEL_ALTITUDE)
+
+        // Missing country markers
+        .hexAltitude(0.04)
+        .hexBinResolution(4)
+        .hexTopColor(() => 'rgb(255,255,255)')
+        .hexSideColor(() => GlobeManager.POLY_FAILED_COLOR)
+        .hexBinMerge(true)
+        .hexBinPointsData([])
   
-        (this.root);
+      (this.root);
   
-        this.loadCustomTextures();
-        this.toggleAutoRotate();
+      this.loadCustomTextures();
+      this.toggleAutoRotate();
     }
 
     public toggleAutoRotate(): void {
@@ -155,7 +149,7 @@ export default class GlobeManager {
   
     public setMissingCountries(missingCountries: CotwCountryData[]): void {
       this.missingCountries = missingCountries;
-      this.instance.labelsData(this.getLabelData());
+      this.instance.hexBinPointsData(this.missingCountries.map(c => c.position));
     }
   
     public update(countryData: CotwCountryData[]): void {
