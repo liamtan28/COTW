@@ -117,8 +117,8 @@ export type GeoJsonFeature = {
           TYPE: "MultiPolygon";
           coordinates: number[][][][];
         };
-  };
-  
+}
+
   
 interface ReducedGeoJsonFeature {
     properties: {
@@ -167,7 +167,7 @@ enum Continent {
     ASIA = "Asia",
     AFRICA = "Africa",
     OCEANIA = "Oceania",
- }
+}
 
 const COLOR_INDEX: Record<Continent, string[]> = {
     [Continent.ASIA]: ["rgba(255, 250, 101,0.9)", "rgba(255, 242, 0,0.9)"],
@@ -176,7 +176,7 @@ const COLOR_INDEX: Record<Continent, string[]> = {
     [Continent.EUROPE]: ["rgba(125, 95, 255,0.9)", "rgba(113, 88, 226,0.9)"],
     [Continent.AFRICA]: ["rgba(24, 220, 255,0.9)", "rgba(23, 192, 235,0.9)"],
     [Continent.OCEANIA]: ["rgba(126, 255, 245,0.9)", "rgba(103, 230, 220,0.9)"],
- };
+}
 
 export const convertGeoJsonToCountryData = (input: GeoJson): CotwCountryData[] => (
     input.features
