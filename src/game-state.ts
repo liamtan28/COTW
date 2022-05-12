@@ -44,7 +44,6 @@ export default class GameStateManager {
   
     public init(): void {
       this.globeManager.draw(this.gameState.countries); 
-      //this.updateCountryTableDOM();
       this.updateTimerDOM();
     }
   
