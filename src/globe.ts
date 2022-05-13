@@ -41,7 +41,7 @@ export default class GlobeManager {
   
     public constructor(root: HTMLElement, data: CotwCountryData[]) {
       this.root = root;
-      this.highlightCountries = data.filter(c => c.highlight);
+      this.highlightCountries = data.filter(c => c.highlight !== 0);
       this.missingCountries = [];
       this.isAutoRotating = false;
     }
@@ -99,7 +99,7 @@ export default class GlobeManager {
         .labelsData(this.highlightCountries)
         .labelLat(c => (c as CotwCountryData).position.lat)
         .labelLng(c => (c as CotwCountryData).position.lng)
-        .labelText(() => "") // Provide no label for missing country, just the circle radius
+        .labelText(c => (c as CotwCountryData).found ? (c as CotwCountryData).properties.NAME : "")
   
         .labelDotRadius(c => GlobeManager.getLabelRadius(c as CotwCountryData))
         .labelColor(c => GlobeManager.getLabelColor(c as CotwCountryData))
@@ -154,6 +154,8 @@ export default class GlobeManager {
   
     public update(countryData: CotwCountryData[]): void {
       this.instance.polygonsData(countryData);
+      this.highlightCountries = countryData.filter(c => c.highlight !== 0);
+      this.instance.labelsData(this.highlightCountries);
     }
   
     public moveTo(country: CotwCountryData, ms: number = 250): void {
