@@ -77,7 +77,6 @@ export default class GlobeManager {
     private static getLabelColor(country: CotwCountryData): string {
         return country.found ? country.baseColor : GlobeManager.HIGHLIGHT_COLOR; 
     }
-
   
     public draw(countryData: CotwCountryData[]): void {
    
