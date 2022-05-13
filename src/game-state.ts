@@ -6,6 +6,7 @@ export interface GameState {
     countriesComplete: number,
     alternativeCountryNames: Record<string, string>,
 
+    timeLimit: number,
     timeRemaining: number,
   
     gameStarted: boolean,
@@ -27,6 +28,7 @@ export default class GameStateManager {
         countriesComplete: 0,
         alternativeCountryNames,
 
+        timeLimit,
         timeRemaining: timeLimit,
   
         gameStarted: false,
@@ -57,6 +59,19 @@ export default class GameStateManager {
       return this.gameState.timeRemaining;
     }
   
+    public reset(): void {
+      this.gameState.gameOver = false;
+      this.gameState.timeRemaining = this.gameState.timeLimit;
+      this.gameState.countries = this.gameState.countries.map(c => ({
+        ...c,
+        found: false,
+        reveal: false,
+      }));
+      this.toggleDisplayMissingCountries(false);
+      this.updateHelpDOM();
+      this.globeManager.update(this.gameState.countries);
+    }
+
     public startGame(): void {
       this.gameState.gameStarted = true;
       this.updateTimerDOM();
@@ -88,8 +103,8 @@ export default class GameStateManager {
       this.globeManager.toggleAutoRotate();
     }
   
-    public toggleDisplayMissingCountries(): void {
-      this.gameState.displayingMissingCountries = !this.gameState.displayingMissingCountries;
+    public toggleDisplayMissingCountries(value?: boolean): void {
+      this.gameState.displayingMissingCountries = value !== undefined ? value : !this.gameState.displayingMissingCountries;
       const missingCountries = this.gameState.displayingMissingCountries ? 
         this.gameState.countries.filter(c => !c.found) :
         [];

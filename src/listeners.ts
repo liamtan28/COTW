@@ -15,6 +15,11 @@ const setTimerEventListener = (manager: GameStateManager) => {
     const timerButton = document.querySelector<HTMLElement>("span.control#game-over");
 
     timerButton.addEventListener("click", () => {
+        if(manager.gameOver) {
+            manager.reset();
+            manager.startGame();
+            return;
+        }
         if (!manager.gameStarted) {
             manager.startGame();
         } else {
