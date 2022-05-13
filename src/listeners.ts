@@ -41,12 +41,19 @@ const setMissingCountriesEventListeners = (manager: GameStateManager) => {
     help.addEventListener("click", () => manager.toggleDisplayMissingCountries());
 }
 
+const setGlobeListeners = (manager: GameStateManager) => {
+    const globe = document.querySelector<HTMLElement>("div#globe");
+    globe.addEventListener("mousedown", () => manager.toggleGrabbing(true));
+    globe.addEventListener("mouseup", () => manager.toggleGrabbing(false));
+}
+
 const listeners = [
     setInputEventListener,
     setTimerEventListener,
     setExplanationEventListeners,
     setGiveUpEventListeners,
-    setMissingCountriesEventListeners
+    setMissingCountriesEventListeners,
+    setGlobeListeners,
 ];
 
 export const bindListeners = (manager: GameStateManager): void => {

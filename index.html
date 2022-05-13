@@ -138,6 +138,14 @@
             overflow: hidden;
             margin-right: 1rem;
         }
+
+        div.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        div.disabled input {
+            cursor: not-allowed;
+        }
         div#input-container svg {
             width: 18px;
             margin-left: 0.5rem;
@@ -155,11 +163,6 @@
             border-radius: 2px;
 		}
 
-
-        input#answer:disabled {
-            background: #fff;
-        }
-
         p#counter {
 			font-weight: 400;
             color: rgba(0,0,0,0.9);
@@ -167,7 +170,6 @@
 			border-radius: 10px;
             box-sizing: border-box;
             padding: 0.5rem;
-            cursor: pointer;
             margin: -1px 0 0 0.5rem;
 		}
      
@@ -211,7 +213,9 @@
 			background: lightgrey;
 		}
 
-
+        div#globe {
+            cursor: grab;
+        }
 
     </style>
     <body>
@@ -247,7 +251,7 @@
         <header>
 
        
-            <div id="input-container">  
+            <div id="input-container" class="disabled">  
                 <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
                 <input type="text" id="answer" disabled="true" />
                 <p id="counter">0/197</p>

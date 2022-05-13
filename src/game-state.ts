@@ -170,6 +170,15 @@ export default class GameStateManager {
       return false;
     }
   
+    public toggleGrabbing(grabbing: boolean): void {
+      const globe = document.querySelector<HTMLElement>("div#globe");
+      if (grabbing) {
+        globe.style.cursor = "grabbing";
+        return;
+      }
+      globe.style.cursor = "grab";
+    }
+
     private updateCounterDOM(): void {
       const counter = document.querySelector("p#counter");
       counter.innerHTML = `${this.gameState.countriesComplete}/197`;
@@ -237,11 +246,14 @@ export default class GameStateManager {
     }
   
     private updateInputDOM(): void {
+      const container = document.querySelector<HTMLElement>('div#input-container');
       const input = document.querySelector<HTMLInputElement>("input#answer");
       if (!this.gameState.gameStarted || this.gameState.gameOver) {
+        container.className = "disabled";
         input.disabled = true;
         return;
       }
       input.disabled = false;
+      container.className = "";
     }
   }
